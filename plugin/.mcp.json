@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arroway": {
+      "type": "http",
+      "url": "${user_config.connection_url}"
+    }
+  }
+}

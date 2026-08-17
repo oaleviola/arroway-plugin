@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "arroway",
+  "displayName": "Arroway",
+  "version": "0.1.14",
+  "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
+  "author": {
+    "name": "Arroway",
+    "email": "hello@arroway.app",
+    "url": "https://www.arroway.app"
+  },
+  "homepage": "https://www.arroway.app",
+  "repository": "https://github.com/oaleviola/arroway-app",
+  "license": "UNLICENSED",
+  "keywords": ["memory", "team", "context", "handoff", "commons"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "userConfig": {
+    "connection_url": {
+      "type": "string",
+      "title": "Connection link",
+      "description": "Paste the link from your Arroway panel (Connections). It carries your identity, so keep it private.",
+      "sensitive": true,
+      "required": true
+    },
+    "enforce_closing": {
+      "type": "boolean",
+      "title": "Ask before ending a turn without a record",
+      "description": "When on, a turn that did substantive work but recorded nothing is asked once to close — log, pass it forward, or say there is no durable residue. Substantive means it changed a file, changed something outside this machine, or spent itself investigating. Turn off to keep the workflow guidance without the prompt.",
+      "default": true
+    },
+    "enforce_reading": {
+      "type": "boolean",
+      "title": "Ask for a team read before the first change",
+      "description": "When on, the first change of a session is asked once to read the commons first, so the work starts from what the team already decided. Turn off to keep the workflow guidance without the prompt.",
+      "default": true
+    }
+  }
+}

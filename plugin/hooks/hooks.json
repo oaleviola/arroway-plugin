@@ -1,0 +1,57 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" start",
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|mcp__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" pre"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|Read|Grep|Glob|NotebookRead|WebFetch|WebSearch|Task|mcp__|arroway_",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" post"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" stop"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" cleanup"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "arroway",
+  "version": "0.1.14",
+  "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
+  "author": {
+    "name": "Arroway",
+    "email": "hello@arroway.app",
+    "url": "https://www.arroway.app"
+  },
+  "homepage": "https://www.arroway.app",
+  "repository": "https://github.com/oaleviola/arroway-app",
+  "license": "UNLICENSED",
+  "keywords": ["memory", "team", "context", "handoff", "commons"],
+  "skills": "./skills/",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "Arroway",
+    "shortDescription": "Shared memory for people and AIs.",
+    "longDescription": "Read what the team already decided before you act, then leave useful context behind for the next person or assistant.",
+    "developerName": "Arroway",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://www.arroway.app",
+    "privacyPolicyURL": "https://www.arroway.app/privacy",
+    "termsOfServiceURL": "https://www.arroway.app/terms",
+    "defaultPrompt": [
+      "Catch me up on the team's latest decisions.",
+      "Find prior context before I start this task.",
+      "Record the durable outcome of this work."
+    ],
+    "brandColor": "#111827",
+    "composerIcon": "./assets/arroway-icon-512.png",
+    "logo": "./assets/arroway-icon-1024.png"
+  }
+}

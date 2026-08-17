@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1851.6 500" width="1851.6" height="500" role="img" aria-label="Arroway">
+  <title>Arroway</title>
+  <g transform="translate(185.1 50) scale(12.5)">
+    <rect width="32" height="32" rx="7.04" fill="#1c2330"></rect>
+    <polyline points="9,23 9,14.5 17,14.5" fill="none" stroke="#ffffff" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    <polygon points="17.2,10.4 24.6,14.5 17.2,18.6" fill="#2b5cd9"></polygon>
+  </g>
+  <text x="705.1" y="318.6" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, sans-serif" font-size="264" font-weight="700" letter-spacing="-0.03em" fill="#1c2330">arroway<tspan fill="#2b5cd9">.</tspan></text>
+</svg>
