@@ -13,7 +13,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|mcp__",
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -24,7 +24,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|Read|Grep|Glob|NotebookRead|WebFetch|WebSearch|Task|mcp__|arroway_",
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|Read|Grep|Glob|NotebookRead|WebFetch|WebSearch|Task|mcp__.*|.*arroway_.*",
         "hooks": [
           {
             "type": "command",

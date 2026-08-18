@@ -118,11 +118,47 @@ export function classifyTool(toolName, toolInput) {
   return null;
 }
 
+// ARROW-189 — cada nome aqui tem que ser somente-leitura SOB QUALQUER FLAG, e a
+// razão de tantos filtros de texto caberem é que eles escrevem em stdout: pôr o
+// resultado num arquivo exige redirecionamento, que já é julgado acima. `tee`
+// está ausente de propósito — ele escreve arquivo sem redirecionamento nenhum.
 const READ_ONLY_COMMANDS = new Set([
   "awk", "basename", "cat", "cd", "column", "comm", "cut", "date", "df", "dirname", "du", "echo",
   "env", "false", "file", "head", "hostname", "id", "jq", "ls", "nl", "pgrep", "printf", "ps",
   "pwd", "rg", "sort", "stat", "tail", "test", "true", "uname", "uniq", "wc", "which", "whoami",
+  // Testes de condição: `if [ -f x ]` é a forma mais comum de olhar antes de agir.
+  "[", "[[",
+  // Hash e soma de verificação — calcular o digest de um arquivo é lê-lo.
+  "b2sum", "cksum", "md5", "md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum",
+  "sha512sum", "shasum",
+  // Inspeção e comparação.
+  "cmp", "diff", "readlink", "realpath", "tree", "type",
+  // Filtros de texto que só escrevem em stdout.
+  "base64", "expr", "fold", "hexdump", "join", "od", "paste", "rev", "seq", "strings", "tr", "xxd",
+  // Informação da máquina.
+  "arch", "getconf", "groups", "locale", "logname", "nproc", "printenv", "sw_vers", "tty", "uptime",
+  // Embutidos do shell inertes no sistema de arquivos, e é dentro de laço que
+  // eles aparecem: `while read linha` é a forma canônica de iterar sobre entrada.
+  // `eval` está ausente de propósito — ele executa o que receber.
+  ":", "break", "continue", "read", "shift", "sleep",
 ]);
+
+// ARROW-189 — CONTROLE DE FLUXO É TRANSPARENTE, não é comando.
+//
+// O julgamento por segmento do ARROW-160 quebra em laço: `for f in *; do cat $f;
+// done` parte em três segmentos e a primeira palavra de cada um é `for`, `do` e
+// `done`. Nenhuma está na lista, então o caso geral devolvia mutação três vezes
+// e o conteúdo do laço — um `cat` inofensivo — nunca era olhado.
+//
+// A distinção que o conserto precisa fazer, e que decide se ele afrouxa o
+// default: palavra de controle se ATRAVESSA, e o que sobra é que se julga. Em
+// `while`/`until`/`if`/`elif` o que sobra É um comando de verdade (a condição
+// roda), então ele encara a lista de permissão como qualquer outro. Em
+// `for`/`select`/`case` o cabeçalho não executa comando nenhum — ele só nomeia a
+// variável e a lista —, e substituição dentro da lista já é julgada à parte.
+const CONTROL_WORDS = new Set(["do", "done", "then", "fi", "else", "esac", "time", "!", "{", "}"]);
+const CONDITION_KEYWORDS = new Set(["while", "until", "if", "elif"]);
+const HEADER_KEYWORDS = new Set(["for", "select", "case"]);
 
 // Subcommand allowlists, for executables that read or write depending on the verb.
 // Every entry here has to be read-only WHATEVER FLAGS FOLLOW — `git branch` is
@@ -189,7 +225,17 @@ function segmentMutates(segment) {
   const redirects = bare.replace(DISCARDED_REDIRECT, " ").replace(FD_DUP, " ");
   if (WRITE_REDIRECT.test(redirects)) return true;
 
-  const words = redirects.trim().split(/\s+/).filter(Boolean);
+  const todas = redirects.trim().split(/\s+/).filter(Boolean);
+
+  // Atravessa o controle de fluxo até sobrar o comando de verdade.
+  let words = todas;
+  while (words.length && CONTROL_WORDS.has(words[0])) words = words.slice(1);
+  if (!words.length) return false;
+  // Cabeçalho de laço não executa comando: só nomeia variável e lista.
+  if (HEADER_KEYWORDS.has(words[0])) return false;
+  while (words.length && CONDITION_KEYWORDS.has(words[0])) words = words.slice(1);
+  if (!words.length) return false;
+
   const executable = words[0]?.replace(/^.*\//, "");
   if (!executable) return false;
   if (READ_ONLY_COMMANDS.has(executable)) return false;
