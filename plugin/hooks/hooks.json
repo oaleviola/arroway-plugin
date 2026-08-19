@@ -5,30 +5,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" start",
-            "additionalContextLimit": 0
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" start"
           }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|mcp__.*",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" pre"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" pre"
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit|apply_patch|Bash|Read|Grep|Glob|NotebookRead|WebFetch|WebSearch|Task|mcp__.*|.*arroway_.*",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" post"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" post"
           }
         ]
       }
@@ -38,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" stop"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" stop"
           }
         ]
       }
@@ -48,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-turn.mjs\" cleanup"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" cleanup"
           }
         ]
       }
