@@ -92,6 +92,14 @@ It does not fetch. Network on the opening path is paid by every session, includi
 
 "Work that exists in no remote" is decided by whether the branch **has an upstream at all**, never by how the tracking column happens to read: a branch in sync with its remote prints an *empty* tracking column, so counting by that column announced every synced branch as work at risk — and excluded the one case the line exists for, the branch whose remote was deleted (`[gone]`). Three things count: no upstream (never pushed), `[gone]` (the remote that held it is gone), and `[ahead N]`. A branch that is only behind loses nothing if this clone is deleted. This is a count of branches at risk, not a patch-by-patch proof: a branch whose commits already reached the remote under another name still counts, because comparing patches would mean one `git` call per branch on every session opening.
 
+## The version of this package, said at the opening
+
+Nothing here updates itself. This package freezes on the day you install it, and updating it is two commands somebody has to remember — which is why an install three versions behind the published one is the normal outcome, not the unlucky one. It happened twice in one week to the person who builds Arroway.
+
+So the server compares what this package declares with what is published, and says so **once, at the opening of the session** — the installed version, the published one, and the two commands. It is addressed to the assistant in the session, which can either run them or tell you. Updating writes the new package to disk; the session you are in keeps the snapshot it started with, so restart it to pick the new one up.
+
+**An install that is up to date prints nothing**, and neither does one *ahead* of what is published. There is also a floor: below the oldest version the server still considers compatible, the same opening says so in firmer words, because that package carries frozen decisions of its own that no promotion can reach. **Neither one ever blocks anything.** A stale install is worth a sentence, never a locked tool — and the sentence rides the opening precisely so it cannot become a line under every command, which is the failure that makes people switch hooks off.
+
 Set `ARROWAY_ENFORCE_READING=false` to turn off only the first-mutation gate in Codex CLI. Disabling the gate does not remove the skill or the closing reminder.
 
 ## Turning the closing reminder off
@@ -126,17 +134,18 @@ Every package fix needs a new version. Update the same version in all three rele
 - `.codex-plugin/plugin.json` inside this package;
 - the `arroway` entry in the repository's `.claude-plugin/marketplace.json`.
 
-Run the package test before tagging:
+The server announces that number as the published version, so it keeps a copy of it in `lib/plugin-version-rules.mjs` and a test fails when the four disagree — a server that announced a version nobody published would send every session chasing an update that does not exist.
+
+Two checks run on every pull request, before anything can merge, and both compare against **what main publishes** rather than against the newest tag:
+
+* the three manifests must name the same plugin and the same version;
+* if the installable differs from the published one, the version must be greater. Shipping different content under a published number makes every installed client consider the fix already installed.
 
 ```bash
-node --experimental-strip-types --test test/plugin-package.test.ts
+pnpm test                    # includes the three-manifest check
+pnpm check:plugin-version    # the bump and tag-continuity gate
 ```
 
-From the `plugin/` directory, let Claude Code derive and validate the release tag instead of creating it by hand:
-
-```bash
-claude plugin tag --dry-run
-claude plugin tag --push
-```
+**Cutting the release tag is not a step any more.** Promoting to `main` publishes — the mirror updates the install repository — and the same push cuts `arroway--v<version>` on its own. `claude plugin tag` is no longer part of the process: it was a manual gesture nobody remembered, and six published versions ended up with no named rollback point because of it. Versions promoted before that workflow existed are listed by the gate as declared debt, and one run of the release workflow with `backfill` cuts every one of them at its own promotion commit.
 
 The command checks the package, refuses a dirty plugin tree, verifies that the plugin manifest and marketplace entry agree, and creates the `{plugin-name}--v{version}` tag. A fix is not released until that tag is pushed; changing files on the marketplace's default branch without changing the version does not update an existing install.
