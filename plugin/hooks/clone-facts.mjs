@@ -134,12 +134,33 @@ function repoFacts(root, { git, exists, mtime, now }, ghosts) {
       ? Number(git(root, ["rev-list", "--count", `HEAD..${defaultRef}`]) || "0")
       : null;
 
-  const unpushedBranches = (git(root, ["for-each-ref", "--format=%(refname:short) %(upstream:track)", "refs/heads"]) || "")
+  // O critério é a EXISTÊNCIA do upstream, nunca a contagem de termos da linha.
+  // Contar termos foi o defeito (medido em 19/ago no próprio arroway-app, 52
+  // branches anunciadas contra 1 de verdade): `%(upstream:track)` vem VAZIO para
+  // branch EM DIA com o remoto, então toda branch sincronizada rendia um termo só
+  // e era anunciada como trabalho que só existe no clone — e a branch cujo remoto
+  // foi APAGADO trazia `[gone]`, dois termos, e escapava da conta. Justo ela: é o
+  // caso que este aviso existe para pegar.
+  //
+  // Separador é tabulação porque `[ahead 1, behind 2]` tem espaço DENTRO, e
+  // refname não pode ter caractere de controle — então o campo nunca se confunde
+  // com o separador. O refname vem primeiro para que a linha da branch sem
+  // upstream (dois campos vazios) continue sobrevivendo ao filtro de linha vazia.
+  const unpushedBranches = (
+    git(root, ["for-each-ref", "--format=%(refname:short)%09%(upstream)%09%(upstream:track)", "refs/heads"]) || ""
+  )
     .split("\n")
     .filter((line) => line.trim())
-    // `[ahead N]` cobre branch com upstream; branch SEM upstream nunca foi
-    // empurrada, e é o caso que mais dói — o trabalho que só existe aqui.
-    .filter((line) => /\[.*ahead \d+/.test(line) || line.trim().split(/\s+/).length === 1).length;
+    .filter((line) => {
+      const [, upstream = "", track = ""] = line.split("\t");
+      // Sem upstream: nunca foi empurrada, e é o caso que mais dói — o trabalho
+      // que só existe aqui.
+      if (!upstream.trim()) return true;
+      // `[gone]`: o remoto sumiu e o commit ficou órfão neste disco. `ahead N`:
+      // há commit à frente do remoto. Só `[behind N]` não perde nada se o clone
+      // for apagado, e vazio é estar em dia — nenhum dos dois conta.
+      return /\[gone\]/.test(track) || /ahead \d+/.test(track);
+    }).length;
 
   const staleWorktrees = (git(root, ["worktree", "list", "--porcelain"]) || "")
     .split("\n")

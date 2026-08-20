@@ -90,6 +90,8 @@ So `SessionStart` also emits a short block, before the norms, when — and only 
 
 It does not fetch. Network on the opening path is paid by every session, including the ones that never touch git — so the block reports what the refs already know and states the age of that knowledge, because "0 commits behind" in a clone that has not fetched for a week gives exactly the wrong impression. Every git call is capped and any failure degrades to silence.
 
+"Work that exists in no remote" is decided by whether the branch **has an upstream at all**, never by how the tracking column happens to read: a branch in sync with its remote prints an *empty* tracking column, so counting by that column announced every synced branch as work at risk — and excluded the one case the line exists for, the branch whose remote was deleted (`[gone]`). Three things count: no upstream (never pushed), `[gone]` (the remote that held it is gone), and `[ahead N]`. A branch that is only behind loses nothing if this clone is deleted. This is a count of branches at risk, not a patch-by-patch proof: a branch whose commits already reached the remote under another name still counts, because comparing patches would mean one `git` call per branch on every session opening.
+
 Set `ARROWAY_ENFORCE_READING=false` to turn off only the first-mutation gate in Codex CLI. Disabling the gate does not remove the skill or the closing reminder.
 
 ## Turning the closing reminder off
