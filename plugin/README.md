@@ -35,20 +35,30 @@ To install from a local checkout instead:
 /plugin marketplace add ./arroway-app
 ```
 
-## Install — Codex / ChatGPT
+## Install — Codex Desktop / CLI
 
 OpenAI plugins do not consume Claude's `${user_config.connection_url}`. The Codex manifest points to `.app.json`, which contains the technical ID of the registered **Arroway OAuth** app. That app owns the MCP connection and login handshake; the same package adds the skill and, where supported, the hooks.
 
-For local development, add the marketplace that contains the package and install it:
+Add the public GitHub marketplace and install the package:
 
 ```bash
-codex plugin marketplace add /path/to/marketplace
+codex plugin marketplace add oaleviola/arroway-app
 codex plugin add arroway@arroway
 ```
 
-Open a new task after installing or updating so the task picks up the new plugin snapshot. In ChatGPT, Developer mode must be enabled and the Arroway MCP app must remain registered. A fresh registration would require replacing the ID in `.app.json` with the new technical ID shown in the app URL (`asdk_app_…`).
+Open a new task after installing or updating so the task picks up the new plugin snapshot.
 
-In a corporate workspace the admin decides: a plugin is either **Available** (each member installs it) or **Installed** (pushed by default). A member cannot add an arbitrary plugin without that. This is the same gate the connector already passes through — the plugin does not escape it, it just replaces two frictions with one.
+For local package development, point the marketplace command at a local checkout instead of the GitHub repository.
+
+The Codex IDE extension does not support plugins. Connect the Arroway MCP server there; do not expect the local skill or hooks to load.
+
+## Connect — ChatGPT
+
+ChatGPT does not require a second manual package installation after you register the remote MCP server. Until the public Arroway plugin is approved, enable Developer mode, add the Arroway MCP URL, and complete OAuth; that registration creates the personal plugin in ChatGPT. After approval, use the public directory entry instead.
+
+The reviewed Arroway 1.0.0 submission already includes the `arroway-workflow` skill. A fresh app registration for development would require replacing the ID in `.app.json` with the technical ID shown in the app URL (`asdk_app_…`).
+
+In a corporate workspace the admin decides: a plugin is either **Available** (each member installs it) or **Installed** (pushed by default). A member cannot add an arbitrary plugin without that. This is the same gate the connector already passes through.
 
 ## What leaves your machine
 
