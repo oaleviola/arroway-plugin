@@ -56,7 +56,7 @@ The Codex IDE extension does not support plugins. Connect the Arroway MCP server
 
 ChatGPT does not require a second manual package installation after you register the remote MCP server. Until the public Arroway plugin is approved, enable Developer mode, add the Arroway MCP URL, and complete OAuth; that registration creates the personal plugin in ChatGPT. After approval, use the public directory entry instead.
 
-The reviewed Arroway 1.0.0 submission already includes the `arroway-workflow` skill. A fresh app registration for development would require replacing the ID in `.app.json` with the technical ID shown in the app URL (`asdk_app_…`).
+The 1.0.0 submission already included the `arroway-workflow` skill; it was rejected on reviewer access, not on the package, and 1.1.0 carries the same skill. A fresh app registration for development would require replacing the ID in `.app.json` with the technical ID shown in the app URL (`asdk_app_…`).
 
 In a corporate workspace the admin decides: a plugin is either **Available** (each member installs it) or **Installed** (pushed by default). A member cannot add an arbitrary plugin without that. This is the same gate the connector already passes through.
 

@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "arroway",
   "displayName": "Arroway",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
   "author": {
     "name": "Arroway",
