@@ -9,7 +9,7 @@
     {
       "name": "arroway",
       "source": "./plugin",
-      "version": "0.1.21",
+      "version": "0.1.22",
       "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish."
     }
   ]

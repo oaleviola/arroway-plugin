@@ -12,7 +12,7 @@
 //   1. lê o evento do cliente;
 //   2. observa o que só desta máquina se pode observar — a ferramenta chamada e
 //      o estado dos clones de git;
-//   3. apresenta a credencial que já chegou até ele;
+//   3. fala com a porta canônica e apresenta a credencial que já chegou até ele;
 //   4. pergunta ao servidor;
 //   5. imprime o que voltar, palavra por palavra;
 //   6. guarda o que o servidor mandar guardar.
@@ -21,7 +21,7 @@
 // nenhuma regra de bloqueio. Se você está prestes a acrescentar uma, ela
 // pertence ao servidor.
 //
-// FALHA ABERTA, SEMPRE. Rede fora, endereço não configurado, resposta inválida,
+// FALHA ABERTA, SEMPRE. Rede fora, resposta inválida,
 // versão que não é a nossa, tempo esgotado: a ferramenta segue, o turno fecha e
 // nada é impresso. Não há cópia local das regras "para funcionar offline" —
 // duplicar julgamento no cliente recria exatamente o problema que este arquivo
@@ -79,7 +79,21 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.18";
+const PLUGIN_VERSION = "0.1.22";
+
+/**
+ * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
+ * identifica a pessoa, enquanto esta origem só recebe uma capacidade curta
+ * depois da primeira leitura autenticada. Separar as duas é o que faz o cano
+ * começar a falar sem pedir que alguém copie uma credencial para o ambiente.
+ *
+ * O override só existe para o processo de teste. Produção sempre usa o host
+ * canônico, mesmo que a instalação não tenha `connection_url`.
+ */
+const CANONICAL_GATE_ORIGIN =
+  process.env.NODE_ENV === "test" && process.env.ARROWAY_TEST_GATE_ORIGIN
+    ? process.env.ARROWAY_TEST_GATE_ORIGIN
+    : "https://www.arroway.app";
 
 function dataRoot() {
   // PLUGIN_DATA é o nome do Codex; CLAUDE_PLUGIN_DATA é o do Claude e também um
@@ -146,13 +160,14 @@ function forget(sessionId) {
 }
 
 /**
- * O endereço, sem nenhum gesto novo de quem instalou.
+ * O endereço do PORTÃO, sem nenhum gesto novo de quem instalou.
  *
- * O manifesto já declara `connection_url` como configuração obrigatória, e o
- * cliente entrega toda opção de plugin ao hook como variável de ambiente. A
- * origem desse endereço serve aos dois caminhos de instalação que o produto
- * oferece — o link privado da conta pessoal e o host canônico de quem entra por
- * OAuth num time.
+ * A URL de conexão, quando o cliente a entrega, ainda serve para o caminho
+ * pessoal apresentar o token que ela carrega. Mas o host do portão não depende
+ * dela: no caminho OAuth a URL já é pública, e a primeira `arroway_read`
+ * autenticada devolve a capacidade de sessão que identifica os pedidos
+ * seguintes. Sem URL configurada, usar a porta canônica permite exatamente esse
+ * primeiro contato em vez de desligar o cano em silêncio.
  */
 function connectionUrl() {
   const raw = process.env.ARROWAY_CONNECTION_URL || process.env.CLAUDE_PLUGIN_OPTION_CONNECTION_URL || "";
@@ -161,7 +176,15 @@ function connectionUrl() {
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     return url;
   } catch {
-    return null;
+    try {
+      const url = new URL(CANONICAL_GATE_ORIGIN);
+      if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+      return url;
+    } catch {
+      // Só alcançável num override de teste malformado. Em produção a constante
+      // acima é HTTPS e esta saída não desliga nenhuma instalação real.
+      return null;
+    }
   }
 }
 
