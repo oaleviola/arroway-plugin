@@ -134,33 +134,39 @@ function repoFacts(root, { git, exists, mtime, now }, ghosts) {
       ? Number(git(root, ["rev-list", "--count", `HEAD..${defaultRef}`]) || "0")
       : null;
 
-  // O critério é a EXISTÊNCIA do upstream, nunca a contagem de termos da linha.
-  // Contar termos foi o defeito (medido em 19/ago no próprio arroway-app, 52
-  // branches anunciadas contra 1 de verdade): `%(upstream:track)` vem VAZIO para
-  // branch EM DIA com o remoto, então toda branch sincronizada rendia um termo só
-  // e era anunciada como trabalho que só existe no clone — e a branch cujo remoto
-  // foi APAGADO trazia `[gone]`, dois termos, e escapava da conta. Justo ela: é o
-  // caso que este aviso existe para pegar.
+  // ARROW-298 — o critério é CONTENÇÃO NO REMOTO, medida no conteúdo. Nunca
+  // configuração de upstream.
   //
-  // Separador é tabulação porque `[ahead 1, behind 2]` tem espaço DENTRO, e
-  // refname não pode ter caractere de controle — então o campo nunca se confunde
-  // com o separador. O refname vem primeiro para que a linha da branch sem
-  // upstream (dois campos vazios) continue sobrevivendo ao filtro de linha vazia.
-  const unpushedBranches = (
-    git(root, ["for-each-ref", "--format=%(refname:short)%09%(upstream)%09%(upstream:track)", "refs/heads"]) || ""
-  )
+  // O DEFEITO QUE ISTO CONSERTA, e ele produzia a conclusão inversa da que o
+  // aviso existe para produzir. O critério anterior contava a branch quando ela
+  // não tinha upstream configurado — e branch criada em worktree NUNCA ganha
+  // upstream. Numa esteira que abre uma worktree por tarefa, o número crescia
+  // sozinho sem descrever risco nenhum, e uma sessão que o lesse como "trabalho a
+  // salvar" trataria clone limpo como achado. Já custou uma triagem inteira de 12
+  // worktrees enquadrada como risco de perda sobre um clone que não tinha nada a
+  // perder. Medido em 07/set nos clones desta máquina: o aviso dizia 6 no
+  // arroway-app e 1 no worker do Telegram; por conteúdo, os dois eram ZERO.
+  //
+  // O ERRO ERA SÓ DE EXCESSO — o critério antigo nunca deixava de apontar
+  // trabalho de fato órfão. Mas aviso que dispara sobre clone limpo para de ser
+  // lido, e aí deixa de valer também no dia em que estiver certo.
+  //
+  // `--no-walk` é o que mantém isto barato: sem ele, `rev-list` percorre e
+  // imprime todo commit local ausente do remoto — saída sem teto, na abertura de
+  // TODA sessão. Com ele, git não caminha pelo histórico e devolve só as PONTAS
+  // que a exclusão não alcançou, uma linha por branch não publicada. Uma chamada,
+  // saída limitada pelo número de branches.
+  //
+  // ⚠️ Duas branches na MESMA ponta rendem uma linha só. É uma peça de trabalho
+  // em risco com dois nomes, e é ela que o aviso pede para salvar — contar dois
+  // anunciaria dois trabalhos onde há um.
+  //
+  // O caso `[gone]` com commit órfão continua sendo pego, porque a ponta dele
+  // segue fora de qualquer ref de origin. O que deixa de disparar é o `[gone]`
+  // cujo trabalho já foi mesclado — que é justamente a melhoria.
+  const unpushedBranches = (git(root, ["rev-list", "--no-walk", "--branches", "--not", "--remotes=origin"]) || "")
     .split("\n")
-    .filter((line) => line.trim())
-    .filter((line) => {
-      const [, upstream = "", track = ""] = line.split("\t");
-      // Sem upstream: nunca foi empurrada, e é o caso que mais dói — o trabalho
-      // que só existe aqui.
-      if (!upstream.trim()) return true;
-      // `[gone]`: o remoto sumiu e o commit ficou órfão neste disco. `ahead N`:
-      // há commit à frente do remoto. Só `[behind N]` não perde nada se o clone
-      // for apagado, e vazio é estar em dia — nenhum dos dois conta.
-      return /\[gone\]/.test(track) || /ahead \d+/.test(track);
-    }).length;
+    .filter((line) => line.trim()).length;
 
   const staleWorktrees = (git(root, ["worktree", "list", "--porcelain"]) || "")
     .split("\n")
