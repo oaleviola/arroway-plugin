@@ -79,7 +79,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.27";
+const PLUGIN_VERSION = "0.1.28";
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
