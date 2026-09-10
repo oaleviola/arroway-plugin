@@ -2,14 +2,15 @@
   "name": "arroway",
   "owner": {
     "name": "Arroway",
-    "email": "hello@arroway.app",
-    "url": "https://www.arroway.app"
+    "email": "hello@arroway.app"
+  },
+  "metadata": {
+    "description": "Shared memory for teams of people and AIs: what the team decided, read by every assistant before it acts."
   },
   "plugins": [
     {
       "name": "arroway",
-      "source": "./plugin",
-      "version": "0.1.27",
+      "source": "plugin",
       "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish."
     }
   ]

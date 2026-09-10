@@ -14,6 +14,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 | The pipe | `hooks/arroway-gate.mjs` | The only script that runs. It observes, asks the server, prints the answer and obeys it. It carries no rule and no wording of its own — see **What leaves your machine** below. |
 | Local observation | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | The two things only your machine can see or keep: the state of the git clones here, and the last delivered norms for this directory. Numbers and text, no judgement. |
 | App mapping (OpenAI) | `.app.json` | Maps the package to the registered Arroway OAuth app used by ChatGPT and Codex. |
+| Manifest, MCP and hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | Cursor reads its own manifest and its own hook format. Same skill, same pipe, no fork — and no link to paste: the address is Arroway's own and the identity comes from signing in. |
 
 ## Install — Claude Code
 
@@ -51,6 +52,14 @@ Open a new task after installing or updating so the task picks up the new plugin
 For local package development, point the marketplace command at a local checkout instead of the GitHub repository.
 
 The Codex IDE extension does not support plugins. Connect the Arroway MCP server there; do not expect the local skill or hooks to load.
+
+## Install — Cursor
+
+Add this repository as a plugin marketplace in Cursor, then install **arroway** from the plugin list.
+
+**Nothing to paste.** The Cursor package carries Arroway's own address and signs you in through the browser the first time it needs you: Cursor registers itself, you approve the connection as yourself, and the memory your assistant writes from then on carries your name. A connection link would be worse here, not better — it is an identity living inside a file that a repository can commit.
+
+Cursor reads a different manifest from Claude Code (`.cursor-plugin/plugin.json`) and a different hook format (`hooks/cursor-hooks.json`). Both travel in this same package, over the same skill and the same pipe: one package, three clients, no fork.
 
 ## Connect — ChatGPT
 

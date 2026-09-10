@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arroway": {
+      "type": "http",
+      "url": "https://www.arroway.app/api/mcp"
+    }
+  }
+}
