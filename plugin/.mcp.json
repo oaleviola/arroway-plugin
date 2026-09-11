@@ -2,7 +2,7 @@
   "mcpServers": {
     "arroway": {
       "type": "http",
-      "url": "${user_config.connection_url}"
+      "url": "https://www.arroway.app/api/mcp"
     }
   }
 }

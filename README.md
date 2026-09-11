@@ -16,7 +16,7 @@ claude plugin marketplace add oaleviola/arroway-plugin
 claude plugin install arroway@arroway
 ```
 
-The plugin asks for a connection link when it installs. Get yours at [www.arroway.app](https://www.arroway.app) — sign in, open **Connections**, and create one. The link carries your identity, so keep it private.
+Nothing to paste. The package carries Arroway's own address. The first time the connector needs you, sign in in the browser: approve the connection as yourself, and the memory your assistant writes from then on carries your name.
 
 ### Cursor
 
@@ -32,7 +32,7 @@ You don't need this repository: add Arroway as a connector instead, from the sam
 
 - `plugin/skills/` — the working protocol: read before acting, record when a task ends, hand work forward when you stop
 - `plugin/hooks/` — the gates that ask for those two moments instead of only describing them
-- `plugin/.mcp.json` — the Claude Code connection, which points at your own link and holds no address of its own
+- `plugin/.mcp.json` — the Claude Code connection, which uses Arroway's own address; identity comes from signing in
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — the same package as Cursor reads it: its own manifest and hook format, Arroway's own address, no link to paste
 - `plugin/assets/` — icons and wordmarks
 

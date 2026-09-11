@@ -8,7 +8,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 
 | Component | File | What it does |
 | :--- | :--- | :--- |
-| MCP connection (Claude) | `.mcp.json` | Connects Claude Code over HTTP. The link you paste carries your identity. |
+| MCP connection (Claude) | `.mcp.json` | Connects Claude Code over HTTP to Arroway's own address. Identity comes from signing in, not from a pasted link. |
 | Skill | `skills/arroway-workflow/SKILL.md` | Teaches the protocol: read → work → norms → close. |
 | Hooks | `hooks/hooks.json` | Matches everything and hands every event to the pipe. No tool name is frozen in the package. |
 | The pipe | `hooks/arroway-gate.mjs` | The only script that runs. It observes, asks the server, prints the answer and obeys it. It carries no rule and no wording of its own — see **What leaves your machine** below. |
@@ -26,7 +26,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 /plugin install arroway@arroway
 ```
 
-Claude Code asks for your **connection link** when the plugin is enabled. Get it from the Connections page of your Arroway panel and paste the whole URL. It is stored the way credentials are stored — the macOS Keychain, or `~/.claude/.credentials.json` where no keychain exists — never in `settings.json`, and never in the repository.
+Nothing to paste. The package carries Arroway's own address. The first time the connector needs you, sign in in the browser: Claude Code registers itself, you approve the connection as yourself, and memory written from then on carries your name.
 
 If the install summary says `Run /reload-plugins to activate.`, run that.
 
@@ -38,7 +38,7 @@ To install from a local checkout instead:
 
 ## Install — Codex Desktop / CLI
 
-OpenAI plugins do not consume Claude's `${user_config.connection_url}`. The Codex manifest points to `.app.json`, which contains the technical ID of the registered **Arroway OAuth** app. That app owns the MCP connection and login handshake; the same package adds the skill and, where supported, the hooks.
+The Codex manifest points to `.app.json`, which contains the technical ID of the registered **Arroway OAuth** app. That app owns the MCP connection and login handshake; the same package adds the skill and, where supported, the hooks.
 
 Add the public GitHub marketplace and install the package:
 
@@ -87,7 +87,7 @@ The reading gate is decided by the server, not by the installed package. That is
 
 **Who the state belongs to.** The gate answers anyone, but it only *remembers* for an authenticated account. Without a credential it reads nothing and writes nothing, and the answer is always the same. On a personal connection the pipe presents the token your connection link already carries — the same secret the connector uses, which is why the link is marked sensitive — and the server swaps it for a short-lived session tag, so the long secret stops travelling on every tool call. In a corporate workspace, where the address is public and the credential is negotiated by your client, that session tag is issued inside the first commons read and binds to the first session that presents it.
 
-**The gate does not need your connection link.** It always contacts Arroway's public gate endpoint. With an OAuth connection, the first successful `arroway_read` returns a short session tag that the pipe presents from then on, so the server can associate the installed version with the right connection without exposing OAuth credentials or asking you to configure an environment variable. A Claude connection link still configures Claude's MCP server itself; it is not required for the gate to reach the server.
+**The gate does not need a pasted connection link.** It always contacts Arroway's public gate endpoint. With an OAuth connection, the first successful `arroway_read` returns a short session tag that the pipe presents from then on, so the server can associate the installed version with the right connection without exposing OAuth credentials or asking you to configure an environment variable. Claude Code and Cursor both use that public address; identity comes from signing in.
 
 **When the server cannot be reached** — no network, a timeout, an answer it does not understand — the tool proceeds and nothing is printed. There is no local copy of the rules: failing open *is* the degradation. After three network failures in a row the pipe stops trying for the rest of the session, so an unreachable server costs you one short wait instead of one per tool call.
 
@@ -151,10 +151,11 @@ Codex CLI/Desktop and Claude Code discover `hooks/hooks.json` by convention. The
 
 ## Maintaining and releasing the package
 
-Every package fix needs a new version. Update the same version in all three release declarations:
+Every package fix needs a new version. Update the same version in all four release declarations:
 
 - `.claude-plugin/plugin.json` inside this package;
 - `.codex-plugin/plugin.json` inside this package;
+- `.cursor-plugin/plugin.json` inside this package;
 - the `arroway` entry in the repository's `.claude-plugin/marketplace.json`.
 
 The server announces that number as the published version, so it keeps a copy of it in `lib/plugin-version-rules.mjs` and a test fails when the four disagree — a server that announced a version nobody published would send every session chasing an update that does not exist.
