@@ -1,6 +1,6 @@
 {
   "name": "arroway",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
   "author": {
     "name": "Arroway",
@@ -8,7 +8,7 @@
     "url": "https://www.arroway.app"
   },
   "homepage": "https://www.arroway.app",
-  "repository": "https://github.com/oaleviola/arroway-app",
+  "repository": "https://github.com/oaleviola/arroway-plugin",
   "license": "MIT",
   "keywords": ["memory", "team", "context", "handoff", "commons"],
   "skills": "./skills/",

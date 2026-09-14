@@ -19,7 +19,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 ## Install — Claude Code
 
 ```bash
-/plugin marketplace add oaleviola/arroway-app
+/plugin marketplace add oaleviola/arroway-plugin
 ```
 
 ```bash
@@ -43,7 +43,7 @@ The Codex manifest points to `.app.json`, which contains the technical ID of the
 Add the public GitHub marketplace and install the package:
 
 ```bash
-codex plugin marketplace add oaleviola/arroway-app
+codex plugin marketplace add oaleviola/arroway-plugin
 codex plugin add arroway@arroway
 ```
 

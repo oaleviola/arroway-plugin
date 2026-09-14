@@ -20,7 +20,7 @@ Nothing to paste. The package carries Arroway's own address. The first time the 
 
 ### Cursor
 
-Add this repository as a plugin marketplace in Cursor, then install **arroway** from the plugin list.
+Add `https://github.com/oaleviola/arroway-plugin` as a plugin marketplace in Cursor, then install **arroway** from the plugin list.
 
 Nothing to paste here: the Cursor package carries Arroway's own address and signs you in through the browser the first time it needs you. Approve the connection as yourself, and the memory your assistant writes from then on carries your name.
 
