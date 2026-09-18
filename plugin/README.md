@@ -9,7 +9,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 | Component | File | What it does |
 | :--- | :--- | :--- |
 | MCP connection (Claude) | `.mcp.json` | Connects Claude Code over HTTP to Arroway's own address. Identity comes from signing in, not from a pasted link. |
-| Skill | `skills/arroway-workflow/SKILL.md` | Teaches the protocol: read → work → norms → close. |
+| Skill | `skills/arroway-workflow/SKILL.md` | Teaches the protocol: read → work → norms → close. Findings are named there as context, never a norm; the judgement of what counts as a finding still lives on the server, not in this file. |
 | Hooks | `hooks/hooks.json` | Matches everything and hands every event to the pipe. No tool name is frozen in the package. |
 | The pipe | `hooks/arroway-gate.mjs` | The only script that runs. It observes, asks the server, prints the answer and obeys it. It carries no rule and no wording of its own — see **What leaves your machine** below. |
 | Local observation | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | The two things only your machine can see or keep: the state of the git clones here, and the last delivered norms for this directory. Numbers and text, no judgement. |

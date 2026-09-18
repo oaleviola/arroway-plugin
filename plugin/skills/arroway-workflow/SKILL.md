@@ -55,6 +55,8 @@ Most tasks end at the log with nothing else to write — that is the normal outc
 
 **Provenance is the rule that matters most here.** Set `decided_by_human=true` **only** when the person stated or sanctioned it in this conversation. Your own inference is saved as a *proposal* for their review, which is the normal case — and a proposal is never free: it costs that person a review, whether they end up approving it, editing it or turning it down. A proposal never presents itself as a decision.
 
+**Findings are context, never a norm.** A source-backed fact or reference that another agent can reopen and compare may be written with `treatment=finding`. It skips the human queue. It cannot be pinned, cannot replace a sanctioned memory, and never justifies an action a rule forbids. If a person revoked a finding, do not write it again unless they reconsidered in this conversation — a flag on the related-memories check does not unlock that. Correcting another finding is in-place replacement, not a proposal.
+
 Every memory needs a `kill_condition`: what would kill it or force a review.
 
 ## Picking up work someone left in flight
