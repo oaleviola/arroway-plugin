@@ -1,7 +1,7 @@
 {
   "name": "arroway",
   "displayName": "Arroway",
-  "version": "0.1.31",
+  "version": "0.1.33",
   "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
   "author": {
     "name": "Arroway",
