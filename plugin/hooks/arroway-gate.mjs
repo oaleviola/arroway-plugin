@@ -79,7 +79,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.33";
+const PLUGIN_VERSION = "0.1.34";
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
@@ -444,7 +444,7 @@ async function main() {
   const normas =
     mode === "start"
       ? loadNorms(dataRoot(), event.cwd) ||
-        "Arroway has no delivered norms cached for this directory yet. Before the first mutation, call arroway_read for the project; a successful delivered response unlocks mutations for this session."
+        "Arroway has no delivered norms cached for this directory yet. Before the first mutation, call arroway_read for the project; a successful delivered response unlocks mutations for this session. If no Arroway tools are available in this session, the connection has not been signed in yet: tell the person, and ask them to sign in to Arroway in this client (in Claude Code: run /mcp and sign in to plugin:arroway:arroway). Until then nothing is read or recorded, so do not present anything as coming from Arroway."
       : "";
   const abertura = (extra) => {
     const texto = extra ? `${extra}\n\n${normas}` : normas;

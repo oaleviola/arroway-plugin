@@ -18,7 +18,7 @@ claude plugin marketplace add oaleviola/arroway-plugin
 claude plugin install arroway@arroway
 ```
 
-Nothing to paste. The package carries Arroway's own address. The first time the connector needs you, sign in in the browser: approve the connection as yourself, and the memory your assistant writes from then on carries your name.
+Nothing to paste, and no separate connector to install: the package carries the connection to Arroway's own address. It starts signed out, so sign in once. In Claude Code, run `/mcp`, choose `plugin:arroway:arroway` and follow the sign-in in the browser. Approve the connection as yourself, and the memory your assistant writes from then on carries your name. Until you sign in, Arroway's tools do not appear and nothing is read or recorded. If Arroway is already connected to your Claude account as a connector and its tools already show up, you can skip this step.
 
 ### Cursor
 
@@ -72,7 +72,7 @@ claude plugin marketplace add oaleviola/arroway-plugin
 claude plugin install arroway@arroway
 ```
 
-No hay nada que pegar. El paquete lleva la dirección de Arroway. La primera vez que el conector te necesite, entra desde el navegador: aprueba la conexión en tu propio nombre, y la memoria que tu asistente escriba desde entonces lleva tu nombre.
+No hay nada que pegar, ni un conector aparte que instalar: el paquete lleva la conexión con la dirección de Arroway. Empieza sin sesión iniciada, así que entra una sola vez. En Claude Code, ejecuta `/mcp`, elige `plugin:arroway:arroway` y sigue el inicio de sesión en el navegador. Aprueba la conexión en tu propio nombre, y la memoria que tu asistente escriba desde entonces lleva tu nombre. Hasta que entres, las herramientas de Arroway no aparecen y no se lee ni se registra nada. Si Arroway ya está conectada a tu cuenta de Claude como conector y sus herramientas ya aparecen, puedes saltarte este paso.
 
 #### Cursor
 
@@ -126,7 +126,7 @@ claude plugin marketplace add oaleviola/arroway-plugin
 claude plugin install arroway@arroway
 ```
 
-Nada para colar. O pacote carrega o endereço da própria Arroway. Na primeira vez que o conector precisar de você, entre pelo navegador: aprove a conexão em seu próprio nome, e a memória que seu assistente escrever dali em diante leva o seu nome.
+Nada para colar, e nenhum conector separado para instalar: o pacote já traz a conexão com o endereço da própria Arroway. Ela começa sem login, então entre uma vez só. No Claude Code, rode `/mcp`, escolha `plugin:arroway:arroway` e siga o login no navegador. Aprove a conexão em seu próprio nome, e a memória que seu assistente escrever dali em diante leva o seu nome. Enquanto você não entrar, as ferramentas da Arroway não aparecem e nada é lido nem registrado. Se a Arroway já está conectada à sua conta do Claude como conector e as ferramentas dela já aparecem, você pode pular este passo.
 
 #### Cursor
 
