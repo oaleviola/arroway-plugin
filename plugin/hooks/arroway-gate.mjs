@@ -79,7 +79,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.35";
+const PLUGIN_VERSION = "0.1.36";
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
@@ -563,9 +563,12 @@ async function main() {
   if (mudou) saveState(event.session_id, guardar);
 
   // Gravar as normas é ordem do servidor, executada sem interpretação: o cano não
-  // sabe o que é uma norma nem quando vale guardar uma.
-  if (mode === "post" && answer.cache_norms === true) {
-    saveNorms(dataRoot(), event.cwd, plainText(event.tool_response));
+  // sabe o que é uma norma nem quando vale guardar uma. Desde a 0.1.36 o servidor
+  // manda o próprio bloco pronto (ARROW-359), e o cano grava o que veio — antes ele
+  // gravava o corpo da ferramenta, e só depois de um `arroway_norms` que quase
+  // nunca chegava até aqui.
+  if (mode === "post" && typeof answer.norms_block === "string" && answer.norms_block.trim()) {
+    saveNorms(dataRoot(), event.cwd, answer.norms_block);
   }
 
   const message = typeof answer.message === "string" && answer.message.trim() ? answer.message : null;
