@@ -79,7 +79,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.34";
+const PLUGIN_VERSION = "0.1.35";
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
@@ -148,13 +148,43 @@ const saveState = (sessionId, valor) => saveJson(sessionFile("directives", sessi
 const loadTurn = (sessionId) => loadJson(sessionFile("turns", sessionId), { seen: [] });
 const saveTurn = (sessionId, valor) => saveJson(sessionFile("turns", sessionId), "turns", valor);
 
-function forget(sessionId) {
+/**
+ * ARROW-360 — o fim da sessão apaga o TURNO, nunca a credencial.
+ *
+ * No Cowork cada mensagem da pessoa encerra a sessão e a reabre com o mesmo
+ * identificador. Apagar tudo no encerramento jogava fora, a cada mensagem, a
+ * etiqueta que a leitura tinha acabado de dar: no turno seguinte o portão barrava
+ * como anônimo quem já tinha lido, e o fechamento ficava mudo. O turno acabou,
+ * então ele sai; a etiqueta e a diretiva ficam para a sessão que reabrir.
+ *
+ * O que sobra sai por idade, não por evento: a etiqueta vive doze horas no
+ * servidor, então arquivo parado há dois dias só guarda o que o servidor já não
+ * aceita.
+ */
+const STALE_AFTER_MS = 2 * 24 * 60 * 60 * 1000;
+
+function endSession(sessionId) {
+  try {
+    const file = sessionFile("turns", sessionId);
+    if (file) rmSync(file, { force: true });
+  } catch {
+    /* nada a recuperar */
+  }
+  const agora = Date.now();
   for (const pasta of ["directives", "turns"]) {
+    let nomes = [];
     try {
-      const file = sessionFile(pasta, sessionId);
-      if (file) rmSync(file, { force: true });
+      nomes = readdirSync(join(dataRoot(), pasta));
     } catch {
-      /* nada a recuperar */
+      continue;
+    }
+    for (const nome of nomes) {
+      try {
+        const file = join(dataRoot(), pasta, nome);
+        if (agora - statSync(file).mtimeMs > STALE_AFTER_MS) rmSync(file, { force: true });
+      } catch {
+        /* nada a recuperar */
+      }
     }
   }
 }
@@ -415,7 +445,7 @@ async function main() {
   }
 
   if (mode === "cleanup") {
-    forget(event.session_id);
+    endSession(event.session_id);
     return;
   }
 

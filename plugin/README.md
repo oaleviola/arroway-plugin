@@ -155,6 +155,8 @@ Then revoke the connection itself in the Arroway panel, under Connections. That 
 
 Codex CLI/Desktop and Claude Code discover `hooks/hooks.json` by convention. The manifest must not declare that default file again. ChatGPT Work on the web does not run local command hooks; there the skill and the server's own instructions carry the protocol, non-coercively. The package never assumes a hook is present.
 
+Cowork runs the same hooks as Claude Code, with two differences the pipe accounts for. Its shell tool is called `mcp__workspace__bash`, and it is judged exactly like `Bash`. And Cowork ends the session and resumes it with every message you send, under the same session id. So when a session ends the pipe clears only the turn, which is over, and keeps the session tag from your last read, so the next message does not look like a session that never read. Any file the pipe keeps that goes untouched for two days is removed; the tag it holds is short-lived on the server anyway.
+
 ## Maintaining and releasing the package
 
 Every package fix needs a new version. Update the same version in all four release declarations:
@@ -339,6 +341,8 @@ Después revoca la conexión en el panel de Arroway, en Conexiones. Eso es lo qu
 
 Codex CLI/Desktop y Claude Code descubren `hooks/hooks.json` por convención. El manifiesto no debe declarar ese archivo por defecto otra vez. ChatGPT Work en la web no ejecuta hooks de comando locales; allí la skill y las propias instrucciones del servidor llevan el protocolo, sin coerción. El paquete nunca da por hecho que haya un hook presente.
 
+Cowork ejecuta los mismos hooks que Claude Code, con dos diferencias que el conducto tiene en cuenta. Su herramienta de shell se llama `mcp__workspace__bash`, y se juzga exactamente igual que `Bash`. Y Cowork termina la sesión y la reanuda con cada mensaje que envías, con el mismo identificador de sesión. Por eso, cuando una sesión termina, el conducto borra solo el turno, que ya acabó, y conserva la etiqueta de sesión de tu última lectura, para que el mensaje siguiente no parezca una sesión que nunca leyó. Cualquier archivo que el conducto guarda y que pasa dos días sin tocarse se borra; la etiqueta que contiene vive poco en el servidor de todos modos.
+
 ### Mantener y publicar el paquete
 
 Cada arreglo del paquete necesita una versión nueva. Actualiza la misma versión en las cuatro declaraciones de publicación:
@@ -522,6 +526,8 @@ Depois revogue a conexão no painel da Arroway, em Conexões. É isso que mata a
 ### Onde os hooks rodam
 
 Codex CLI/Desktop e Claude Code descobrem o `hooks/hooks.json` por convenção. O manifesto não deve declarar esse arquivo padrão de novo. O ChatGPT Work na web não roda hooks de comando locais; ali a skill e as próprias instruções do servidor carregam o protocolo, sem coerção. O pacote nunca presume que exista um hook.
+
+O Cowork roda os mesmos hooks do Claude Code, com duas diferenças que o cano leva em conta. A ferramenta de shell dele se chama `mcp__workspace__bash`, e é julgada exatamente como o `Bash`. E o Cowork encerra a sessão e a retoma a cada mensagem que você manda, com o mesmo identificador de sessão. Por isso, quando uma sessão termina, o cano apaga só o turno, que acabou, e guarda a etiqueta de sessão da sua última leitura, para a mensagem seguinte não parecer uma sessão que nunca leu. Qualquer arquivo que o cano guarda e que fica dois dias sem ser tocado é apagado; a etiqueta que ele contém vive pouco no servidor de qualquer jeito.
 
 ### Manter e publicar o pacote
 
