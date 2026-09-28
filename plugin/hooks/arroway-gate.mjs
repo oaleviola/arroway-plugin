@@ -12,7 +12,8 @@
 //   1. lê o evento do cliente;
 //   2. observa o que só desta máquina se pode observar — a ferramenta chamada e
 //      o estado dos clones de git;
-//   3. fala com a porta canônica e apresenta a credencial que já chegou até ele;
+//   3. fala com a porta canônica e apresenta a etiqueta que o próprio servidor
+//      emitiu — nunca uma credencial lida da máquina;
 //   4. pergunta ao servidor;
 //   5. imprime o que voltar, palavra por palavra;
 //   6. guarda o que o servidor mandar guardar.
@@ -79,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.36";
+const PLUGIN_VERSION = "0.1.37";
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
@@ -88,7 +89,7 @@ const PLUGIN_VERSION = "0.1.36";
  * começar a falar sem pedir que alguém copie uma credencial para o ambiente.
  *
  * O override só existe para o processo de teste. Produção sempre usa o host
- * canônico, mesmo que a instalação não tenha `connection_url`.
+ * canônico: nenhuma variável de ambiente de quem instalou muda o destino.
  */
 const CANONICAL_GATE_ORIGIN =
   process.env.NODE_ENV === "test" && process.env.ARROWAY_TEST_GATE_ORIGIN
@@ -190,52 +191,26 @@ function endSession(sessionId) {
 }
 
 /**
- * O endereço do PORTÃO, sem nenhum gesto novo de quem instalou.
+ * O endereço do PORTÃO, e ele é um só.
  *
- * A URL de conexão, quando o cliente a entrega, ainda serve para o caminho
- * pessoal apresentar o token que ela carrega. Mas o host do portão não depende
- * dela: no caminho OAuth a URL já é pública, e a primeira `arroway_read`
- * autenticada devolve a capacidade de sessão que identifica os pedidos
- * seguintes. Sem URL configurada, usar a porta canônica permite exatamente esse
- * primeiro contato em vez de desligar o cano em silêncio.
+ * O cano não lê endereço nem credencial do ambiente de quem instalou. Até a
+ * 0.1.36 ele aceitava uma URL de conexão por variável de ambiente e apresentava
+ * o token do caminho dela: era ler da máquina um segredo que já estava ali e
+ * mandá-lo a um servidor, que é exatamente o que o scan do diretório da
+ * Anthropic aponta (ARROW-216). O link colado já tinha saído do manifesto — a
+ * identidade vem do login no conector —, e o cano era o último lugar que ainda
+ * o procurava. A primeira `arroway_read` autenticada devolve a etiqueta de
+ * sessão, e é ela que identifica os pedidos seguintes.
  */
-function connectionUrl() {
-  const raw = process.env.ARROWAY_CONNECTION_URL || process.env.CLAUDE_PLUGIN_OPTION_CONNECTION_URL || "";
+function gateEndpoint() {
   try {
-    const url = new URL(raw);
+    const url = new URL(CANONICAL_GATE_ORIGIN);
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-    return url;
+    return new URL("/api/plugin/gate", url.origin).toString();
   } catch {
-    try {
-      const url = new URL(CANONICAL_GATE_ORIGIN);
-      if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-      return url;
-    } catch {
-      // Só alcançável num override de teste malformado. Em produção a constante
-      // acima é HTTPS e esta saída não desliga nenhuma instalação real.
-      return null;
-    }
-  }
-}
-
-/**
- * A credencial que JÁ CHEGOU AQUI, e que a primeira versão deste arquivo jogava
- * fora.
- *
- * No caminho de conta pessoal o token viaja no caminho da URL que a pessoa
- * colou — é por isso que o manifesto declara `connection_url` como sensível. O
- * portão montava o endpoint só com o origin e descartava justamente o pedaço que
- * autentica. Apresentá-lo não é mecanismo novo: é o portão ficar autenticado
- * como o conector já é. No caminho corporativo não há token nenhum aqui, e é a
- * etiqueta de sessão que faz esse papel.
- */
-function connectionToken(url) {
-  const encontrado = url.pathname.match(/^\/api\/([^/]+)\/mcp\/?$/);
-  if (!encontrado) return null;
-  try {
-    return decodeURIComponent(encontrado[1]) || null;
-  } catch {
-    return encontrado[1] || null;
+    // Só alcançável num override de teste malformado. Em produção a constante
+    // acima é HTTPS e esta saída não desliga nenhuma instalação real.
+    return null;
   }
 }
 
@@ -283,7 +258,7 @@ function plainText(response) {
  * ferramenta — se a resposta voltou sem erro e com texto. No fim do turno vai a
  * lista do que foi chamado e a CAUDA da última resposta do modelo. Na abertura
  * vão os números dos clones de git desta pasta. A chave opaca de sessão vai SÓ
- * quando há credencial para apresentar.
+ * quando há etiqueta para apresentar.
  *
  * NÃO vai: caminho de arquivo, diretório de trabalho, conteúdo de arquivo,
  * conteúdo de resposta, corpo das normas. Nem em impressão digital.
@@ -489,12 +464,11 @@ async function main() {
     return;
   }
 
-  const url = connectionUrl();
-  if (!url) {
+  const endpoint = gateEndpoint();
+  if (!endpoint) {
     if (mode === "start") abertura(null);
     return;
   }
-  const endpoint = new URL("/api/plugin/gate", url.origin).toString();
 
   // A etiqueta chega dentro da resposta da leitura, então ela é colhida ANTES de
   // perguntar: é o que faz a mesma requisição já sair autenticada.
@@ -507,9 +481,10 @@ async function main() {
     }
   }
 
-  // A etiqueta vem primeiro: assim o segredo longo do caminho pessoal para de
-  // viajar assim que o servidor emite a de sessão.
-  const credential = capability ?? connectionToken(url);
+  // A etiqueta é a ÚNICA credencial que sai daqui: emitida pelo servidor,
+  // guardada na pasta de dados do próprio plugin e devolvida só a ele. Sem ela
+  // o pedido vai anônimo — e anônimo é o caminho sem estado, não uma recusa.
+  const credential = capability;
 
   const extra =
     mode === "stop"
