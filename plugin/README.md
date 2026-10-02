@@ -15,7 +15,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 | Hooks | `hooks/hooks.json` | Matches everything and hands every event to the pipe. No tool name is frozen in the package. |
 | The pipe | `hooks/arroway-gate.mjs` | The only script that runs. It observes, asks the server, prints the answer and obeys it. It carries no rule and no wording of its own — see **What leaves your machine** below. |
 | Local observation | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | The two things only your machine can see or keep: the state of the git clones here, and the last delivered norms for this directory. Numbers and text, no judgement. |
-| MCP connection (OpenAI) | `.mcp.json` | Declares Arroway's public MCP endpoint so the directory can connect and scan it directly. |
+| MCP connection (OpenAI) | `codex-mcp.json` | Declares Arroway's public MCP endpoint so the directory can connect and scan it directly. |
 | Manifest, MCP and hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | Cursor reads its own manifest and its own hook format. Same skill, same pipe, no fork — and no link to paste: the address is Arroway's own and the identity comes from signing in. |
 
 ## Install — Claude Code
@@ -44,7 +44,7 @@ To install from a local checkout instead:
 
 ## Install — Codex Desktop / CLI
 
-The Codex manifest points to `.mcp.json`, which declares Arroway's public MCP endpoint. The directory connects to that endpoint, discovers OAuth from the server, and scans it directly; the same package adds the skill and, where supported, the hooks.
+The Codex manifest points to `codex-mcp.json`, which declares Arroway's public MCP endpoint. The directory connects to that endpoint, discovers OAuth from the server, and scans it directly; the same package adds the skill and, where supported, the hooks.
 
 Add the public GitHub marketplace and install the package:
 
@@ -201,7 +201,7 @@ El plugin no sustituye al servidor MCP — lo envuelve. El servidor sigue siendo
 | Hooks | `hooks/hooks.json` | Coincide con todo y entrega cada evento al conducto. Ningún nombre de herramienta queda congelado en el paquete. |
 | El conducto | `hooks/arroway-gate.mjs` | El único script que se ejecuta. Observa, le pregunta al servidor, imprime la respuesta y la obedece. No lleva ninguna regla ni redacción propia — mira **Qué sale de tu máquina**, más abajo. |
 | Observación local | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | Las dos cosas que solo tu máquina puede ver o guardar: el estado de los clones de git que hay aquí, y las últimas normas entregadas para este directorio. Números y texto, sin juicio. |
-| Conexión MCP (OpenAI) | `.mcp.json` | Declara el endpoint MCP público de Arroway para que el directorio lo conecte y lo analice directamente. |
+| Conexión MCP (OpenAI) | `codex-mcp.json` | Declara el endpoint MCP público de Arroway para que el directorio lo conecte y lo analice directamente. |
 | Manifiesto, MCP y hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | Cursor lee su propio manifiesto y su propio formato de hooks. La misma skill, el mismo conducto, sin fork — y ningún enlace que pegar: la dirección es la de Arroway y la identidad viene de entrar. |
 
 ### Instalación — Claude Code
@@ -230,7 +230,7 @@ Para instalar desde una copia local en vez del repositorio:
 
 ### Instalación — Codex Desktop / CLI
 
-El manifiesto de Codex apunta a `.mcp.json`, que declara el endpoint MCP público de Arroway. El directorio se conecta a ese endpoint, descubre OAuth desde el servidor y lo analiza directamente; el mismo paquete añade la skill y, donde haya soporte, los hooks.
+El manifiesto de Codex apunta a `codex-mcp.json`, que declara el endpoint MCP público de Arroway. El directorio se conecta a ese endpoint, descubre OAuth desde el servidor y lo analiza directamente; el mismo paquete añade la skill y, donde haya soporte, los hooks.
 
 Añade el marketplace público de GitHub e instala el paquete:
 
@@ -387,7 +387,7 @@ O plugin não substitui o servidor MCP — ele o embrulha. O servidor continua s
 | Hooks | `hooks/hooks.json` | Casa com tudo e entrega cada evento ao cano. Nenhum nome de ferramenta fica congelado no pacote. |
 | O cano | `hooks/arroway-gate.mjs` | O único script que roda. Ele observa, pergunta ao servidor, imprime a resposta e obedece. Não carrega regra nenhuma nem texto próprio — veja **O que sai da sua máquina**, mais abaixo. |
 | Observação local | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | As duas coisas que só a sua máquina consegue ver ou guardar: o estado dos clones de git que existem aqui, e as últimas normas entregues para este diretório. Números e texto, sem julgamento. |
-| Conexão MCP (OpenAI) | `.mcp.json` | Declara o endpoint MCP público da Arroway para que o diretório o conecte e o examine diretamente. |
+| Conexão MCP (OpenAI) | `codex-mcp.json` | Declara o endpoint MCP público da Arroway para que o diretório o conecte e o examine diretamente. |
 | Manifesto, MCP e hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | O Cursor lê manifesto próprio e formato de hooks próprio. A mesma skill, o mesmo cano, sem fork — e nenhum link para colar: o endereço é o da própria Arroway e a identidade vem de entrar. |
 
 ### Instalação — Claude Code
@@ -416,7 +416,7 @@ Para instalar a partir de uma cópia local em vez do repositório:
 
 ### Instalação — Codex Desktop / CLI
 
-O manifesto do Codex aponta para o `.mcp.json`, que declara o endpoint MCP público da Arroway. O diretório conecta esse endpoint, descobre o OAuth no próprio servidor e o examina diretamente; o mesmo pacote acrescenta a skill e, onde houver suporte, os hooks.
+O manifesto do Codex aponta para o `codex-mcp.json`, que declara o endpoint MCP público da Arroway. O diretório conecta esse endpoint, descobre o OAuth no próprio servidor e o examina diretamente; o mesmo pacote acrescenta a skill e, onde houver suporte, os hooks.
 
 Adicione o marketplace público do GitHub e instale o pacote:
 

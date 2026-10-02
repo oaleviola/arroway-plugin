@@ -1,6 +1,6 @@
 {
   "name": "arroway",
-  "version": "0.1.42",
+  "version": "0.1.43",
   "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
   "author": {
     "name": "Arroway",
@@ -12,7 +12,7 @@
   "license": "MIT",
   "keywords": ["memory", "team", "context", "handoff", "commons"],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
+  "mcpServers": "./codex-mcp.json",
   "interface": {
     "supportURL": "https://www.arroway.app/support",
     "displayName": "Arroway",
