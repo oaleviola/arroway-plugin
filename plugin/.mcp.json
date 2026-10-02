@@ -2,7 +2,7 @@
   "mcpServers": {
     "arroway": {
       "type": "http",
-      "url": "https://www.arroway.app/api/mcp"
+      "url": "https://www.arroway.app/api/openai/mcp"
     }
   }
 }
