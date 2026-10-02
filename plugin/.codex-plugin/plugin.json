@@ -1,6 +1,6 @@
 {
-  "name": "app-6a7ce2dd73b08191aaa3b505f8825546",
-  "version": "0.1.39",
+  "name": "arroway",
+  "version": "0.1.40",
   "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
   "author": {
     "name": "Arroway",
@@ -12,8 +12,9 @@
   "license": "MIT",
   "keywords": ["memory", "team", "context", "handoff", "commons"],
   "skills": "./skills/",
-  "apps": "./.app.json",
+  "mcpServers": "./.mcp.json",
   "interface": {
+    "supportURL": "https://www.arroway.app/support",
     "displayName": "Arroway",
     "shortDescription": "Shared memory for people and AIs.",
     "longDescription": "Read what the team already decided before you act, then leave useful context behind for the next person or assistant.",

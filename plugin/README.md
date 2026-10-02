@@ -15,7 +15,7 @@ The plugin does not replace the MCP server — it wraps it. The server is still 
 | Hooks | `hooks/hooks.json` | Matches everything and hands every event to the pipe. No tool name is frozen in the package. |
 | The pipe | `hooks/arroway-gate.mjs` | The only script that runs. It observes, asks the server, prints the answer and obeys it. It carries no rule and no wording of its own — see **What leaves your machine** below. |
 | Local observation | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | The two things only your machine can see or keep: the state of the git clones here, and the last delivered norms for this directory. Numbers and text, no judgement. |
-| App mapping (OpenAI) | `.app.json` | Maps the package to the registered Arroway OAuth app used by ChatGPT and Codex. |
+| MCP connection (OpenAI) | `.mcp.json` | Declares Arroway's public MCP endpoint so the directory can connect and scan it directly. |
 | Manifest, MCP and hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | Cursor reads its own manifest and its own hook format. Same skill, same pipe, no fork — and no link to paste: the address is Arroway's own and the identity comes from signing in. |
 
 ## Install — Claude Code
@@ -44,7 +44,7 @@ To install from a local checkout instead:
 
 ## Install — Codex Desktop / CLI
 
-The Codex manifest points to `.app.json`, which contains the technical ID of the registered **Arroway OAuth** app. That app owns the MCP connection and login handshake; the same package adds the skill and, where supported, the hooks.
+The Codex manifest points to `.mcp.json`, which declares Arroway's public MCP endpoint. The directory connects to that endpoint, discovers OAuth from the server, and scans it directly; the same package adds the skill and, where supported, the hooks.
 
 Add the public GitHub marketplace and install the package:
 
@@ -71,7 +71,7 @@ Cursor reads a different manifest from Claude Code (`.cursor-plugin/plugin.json`
 
 ChatGPT does not require a second manual package installation after you register the remote MCP server. Until the public Arroway plugin is approved, enable Developer mode, add the Arroway MCP URL, and complete OAuth; that registration creates the personal plugin in ChatGPT. After approval, use the public directory entry instead.
 
-The 1.0.0 submission already included the `arroway-workflow` skill; it was rejected on reviewer access, not on the package, and 1.1.0 carries the same skill. A fresh app registration for development would require replacing the ID in `.app.json` with the technical ID shown in the app URL (`asdk_app_…`).
+The 1.0.0 submission already included the `arroway-workflow` skill; it was rejected on reviewer access, not on the package. The current package declares the remote MCP endpoint directly, so the directory can complete connection, OAuth and tool scanning from the submission dashboard.
 
 In a corporate workspace the admin decides: a plugin is either **Available** (each member installs it) or **Installed** (pushed by default). A member cannot add an arbitrary plugin without that. This is the same gate the connector already passes through.
 
@@ -201,7 +201,7 @@ El plugin no sustituye al servidor MCP — lo envuelve. El servidor sigue siendo
 | Hooks | `hooks/hooks.json` | Coincide con todo y entrega cada evento al conducto. Ningún nombre de herramienta queda congelado en el paquete. |
 | El conducto | `hooks/arroway-gate.mjs` | El único script que se ejecuta. Observa, le pregunta al servidor, imprime la respuesta y la obedece. No lleva ninguna regla ni redacción propia — mira **Qué sale de tu máquina**, más abajo. |
 | Observación local | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | Las dos cosas que solo tu máquina puede ver o guardar: el estado de los clones de git que hay aquí, y las últimas normas entregadas para este directorio. Números y texto, sin juicio. |
-| Mapeo de la app (OpenAI) | `.app.json` | Asocia el paquete a la app OAuth de Arroway registrada que usan ChatGPT y Codex. |
+| Conexión MCP (OpenAI) | `.mcp.json` | Declara el endpoint MCP público de Arroway para que el directorio lo conecte y lo analice directamente. |
 | Manifiesto, MCP y hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | Cursor lee su propio manifiesto y su propio formato de hooks. La misma skill, el mismo conducto, sin fork — y ningún enlace que pegar: la dirección es la de Arroway y la identidad viene de entrar. |
 
 ### Instalación — Claude Code
@@ -230,7 +230,7 @@ Para instalar desde una copia local en vez del repositorio:
 
 ### Instalación — Codex Desktop / CLI
 
-El manifiesto de Codex apunta a `.app.json`, que contiene el ID técnico de la app **Arroway OAuth** registrada. Esa app es la dueña de la conexión MCP y del intercambio de entrada; el mismo paquete añade la skill y, donde haya soporte, los hooks.
+El manifiesto de Codex apunta a `.mcp.json`, que declara el endpoint MCP público de Arroway. El directorio se conecta a ese endpoint, descubre OAuth desde el servidor y lo analiza directamente; el mismo paquete añade la skill y, donde haya soporte, los hooks.
 
 Añade el marketplace público de GitHub e instala el paquete:
 
@@ -257,7 +257,7 @@ Cursor lee un manifiesto distinto del de Claude Code (`.cursor-plugin/plugin.jso
 
 ChatGPT no exige una segunda instalación manual del paquete después de que registres el servidor MCP remoto. Hasta que el plugin público de Arroway esté aprobado, activa el modo desarrollador, añade la URL del MCP de Arroway y completa el OAuth; ese registro crea el plugin personal dentro de ChatGPT. Después de la aprobación, usa la entrada del directorio público.
 
-El envío de la 1.0.0 ya incluía la skill `arroway-workflow`; fue rechazado por el acceso de quien revisaba, no por el paquete, y la 1.1.0 lleva esa misma skill. Registrar una app nueva para desarrollo exigiría sustituir el ID de `.app.json` por el ID técnico que aparece en la URL de la app (`asdk_app_…`).
+El envío de la 1.0.0 ya incluía la skill `arroway-workflow`; fue rechazado por el acceso de quien revisaba, no por el paquete. El paquete actual declara el endpoint MCP remoto directamente, para que el directorio complete la conexión, OAuth y el análisis de herramientas desde el panel de envío.
 
 En un espacio de trabajo corporativo decide quien administra: un plugin está **Disponible** (cada miembro lo instala) o **Instalado** (empujado por defecto). Un miembro no puede añadir un plugin cualquiera sin eso. Es la misma puerta por la que ya pasa el conector.
 
@@ -387,7 +387,7 @@ O plugin não substitui o servidor MCP — ele o embrulha. O servidor continua s
 | Hooks | `hooks/hooks.json` | Casa com tudo e entrega cada evento ao cano. Nenhum nome de ferramenta fica congelado no pacote. |
 | O cano | `hooks/arroway-gate.mjs` | O único script que roda. Ele observa, pergunta ao servidor, imprime a resposta e obedece. Não carrega regra nenhuma nem texto próprio — veja **O que sai da sua máquina**, mais abaixo. |
 | Observação local | `hooks/clone-facts.mjs`, `hooks/norms-cache.mjs` | As duas coisas que só a sua máquina consegue ver ou guardar: o estado dos clones de git que existem aqui, e as últimas normas entregues para este diretório. Números e texto, sem julgamento. |
-| Mapeamento do app (OpenAI) | `.app.json` | Associa o pacote ao app OAuth da Arroway registrado que o ChatGPT e o Codex usam. |
+| Conexão MCP (OpenAI) | `.mcp.json` | Declara o endpoint MCP público da Arroway para que o diretório o conecte e o examine diretamente. |
 | Manifesto, MCP e hooks (Cursor) | `.cursor-plugin/plugin.json`, `cursor-mcp.json`, `hooks/cursor-hooks.json` | O Cursor lê manifesto próprio e formato de hooks próprio. A mesma skill, o mesmo cano, sem fork — e nenhum link para colar: o endereço é o da própria Arroway e a identidade vem de entrar. |
 
 ### Instalação — Claude Code
@@ -416,7 +416,7 @@ Para instalar a partir de uma cópia local em vez do repositório:
 
 ### Instalação — Codex Desktop / CLI
 
-O manifesto do Codex aponta para o `.app.json`, que contém o ID técnico do app **Arroway OAuth** registrado. É esse app que é dono da conexão MCP e da troca de entrada; o mesmo pacote acrescenta a skill e, onde houver suporte, os hooks.
+O manifesto do Codex aponta para o `.mcp.json`, que declara o endpoint MCP público da Arroway. O diretório conecta esse endpoint, descobre o OAuth no próprio servidor e o examina diretamente; o mesmo pacote acrescenta a skill e, onde houver suporte, os hooks.
 
 Adicione o marketplace público do GitHub e instale o pacote:
 
@@ -443,7 +443,7 @@ O Cursor lê um manifesto diferente do Claude Code (`.cursor-plugin/plugin.json`
 
 O ChatGPT não exige uma segunda instalação manual do pacote depois que você registra o servidor MCP remoto. Até o plugin público da Arroway ser aprovado, ative o modo desenvolvedor, adicione a URL do MCP da Arroway e complete o OAuth; esse registro cria o plugin pessoal dentro do ChatGPT. Depois da aprovação, use a entrada do diretório público.
 
-O envio da 1.0.0 já incluía a skill `arroway-workflow`; foi recusado por causa do acesso de quem revisava, não do pacote, e a 1.1.0 carrega essa mesma skill. Registrar um app novo para desenvolvimento exigiria trocar o ID do `.app.json` pelo ID técnico que aparece na URL do app (`asdk_app_…`).
+O envio da 1.0.0 já incluía a skill `arroway-workflow`; foi recusado por causa do acesso de quem revisava, não do pacote. O pacote atual declara o endpoint MCP remoto diretamente, para que o diretório complete a conexão, o OAuth e o exame das ferramentas pelo painel de submissão.
 
 Num espaço de trabalho corporativo quem decide é quem administra: um plugin fica **Disponível** (cada pessoa instala) ou **Instalado** (empurrado por padrão). Uma pessoa do time não consegue adicionar um plugin qualquer sem isso. É o mesmo portão pelo qual o conector já passa.
 
