@@ -1,6 +1,6 @@
 {
   "name": "arroway",
-  "version": "0.1.40",
+  "version": "0.1.41",
   "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
   "author": {
     "name": "Arroway",
@@ -16,7 +16,7 @@
   "interface": {
     "supportURL": "https://www.arroway.app/support",
     "displayName": "Arroway",
-    "shortDescription": "Shared memory for people and AIs.",
+    "shortDescription": "Team memory for people and AI",
     "longDescription": "Read what the team already decided before you act, then leave useful context behind for the next person or assistant.",
     "developerName": "Arroway",
     "category": "Productivity",
