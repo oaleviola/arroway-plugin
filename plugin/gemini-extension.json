@@ -1,0 +1,10 @@
+{
+  "name": "arroway",
+  "version": "0.1.44",
+  "description": "Arroway orchestrates people and AI agents around the decisions in force.",
+  "mcpServers": {
+    "arroway": {
+      "httpUrl": "https://www.arroway.app/api/mcp"
+    }
+  }
+}
