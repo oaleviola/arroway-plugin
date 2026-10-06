@@ -1,8 +1,8 @@
 {
   "name": "arroway",
   "displayName": "Arroway",
-  "version": "0.1.44",
-  "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish.",
+  "version": "0.1.45",
+  "description": "Arroway keeps people and their AIs on the same page. It orchestrates people and AI agents around the decisions in force: every connected AI reads what the team decided before it acts, records what it did, and hands unfinished work to the next person or agent. What an AI proposes waits for a person's approval.",
   "author": {
     "name": "Arroway",
     "email": "hello@arroway.app"
@@ -12,7 +12,7 @@
   "repository": "https://github.com/oaleviola/arroway-plugin",
   "license": "MIT",
   "logo": "./assets/arroway-icon-512.png",
-  "keywords": ["memory", "team", "context", "handoff", "commons"],
+  "keywords": ["orchestrate people and AI agents", "team decisions for AI assistants", "AI agent handoff", "who approved what the AI did", "shared context across Claude, ChatGPT and Cursor", "onboarding a new teammate with AI agents", "AI agent owner", "team rules for AI"],
   "category": "productivity",
   "skills": "./skills/",
   "hooks": "./hooks/cursor-hooks.json",

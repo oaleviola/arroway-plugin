@@ -1,6 +1,6 @@
 {
   "name": "arroway",
-  "description": "The Arroway plugin: shared memory for a team of people and AIs.",
+  "description": "Arroway orchestrates people and AI agents around the decisions in force.",
   "owner": {
     "name": "Arroway",
     "email": "hello@arroway.app",
@@ -10,8 +10,8 @@
     {
       "name": "arroway",
       "source": "./plugin",
-      "version": "0.1.44",
-      "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish."
+      "version": "0.1.45",
+      "description": "Arroway keeps people and their AIs on the same page. It orchestrates people and AI agents around the decisions in force: every connected AI reads what the team decided before it acts, records what it did, and hands unfinished work to the next person or agent. What an AI proposes waits for a person's approval."
     }
   ]
 }

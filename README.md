@@ -1,8 +1,10 @@
 # Arroway — plugin
 
+[Arroway](https://www.arroway.app) orchestrates people and AI agents around the decisions in force.
+
 **English** · [Español](#español) · [Português](#português)
 
-Shared memory for a team of people and AIs. Your team writes down what it decided; every teammate's AI reads it before it acts, and leaves behind what someone arriving later would need in order not to redo the work.
+Your team writes down what it decided; every teammate's AI reads it before it acts, and leaves behind what someone arriving later would need in order not to redo the work.
 
 This repository is the plugin: the connection to Arroway, the working protocol, and the hooks that make an assistant read before it changes anything and record when it finishes.
 
@@ -29,6 +31,10 @@ Nothing to paste here: the Cursor package carries Arroway's own address and sign
 ### Claude in the browser or on your phone
 
 You don't need this repository: add Arroway as a connector instead, from the same Connections page.
+
+### Asking an AI agent to install it
+
+Point it to [llms-install.md](llms-install.md): the steps for each client, written for an agent, Cline and any other MCP client included.
 
 ## Using it
 
@@ -89,7 +95,7 @@ Found a problem, or want to suggest something? [www.arroway.app/support](https:/
 
 [English](#arroway--plugin) · **Español** · [Português](#português)
 
-Memoria compartida para un equipo de personas e IAs. Tu equipo anota lo que decidió; la IA de cada persona lo lee antes de actuar, y deja atrás lo que alguien que llegue después necesitaría para no rehacer el trabajo.
+[Arroway](https://www.arroway.app/es) coordina a personas y agentes de IA en torno a las decisiones vigentes. Tu equipo anota lo que decidió; la IA de cada persona lo lee antes de actuar, y deja atrás lo que alguien que llegue después necesitaría para no rehacer el trabajo.
 
 Este repositorio es el plugin: la conexión con Arroway, el protocolo de trabajo, y los hooks que hacen que un asistente lea antes de cambiar nada y registre cuando termina.
 
@@ -116,6 +122,10 @@ Aquí tampoco hay nada que pegar: el paquete de Cursor lleva la dirección de Ar
 #### Claude en el navegador o en el móvil
 
 No necesitas este repositorio: añade Arroway como conector, desde la misma página de Conexiones.
+
+#### Si se lo pides a un agente de IA
+
+Muéstrale [llms-install.md](llms-install.md): los pasos de cada cliente, escritos para un agente, incluidos Cline y cualquier otro cliente MCP.
 
 ### Cómo se usa
 
@@ -176,7 +186,7 @@ Es generado. La fuente vive en otro sitio y se publica aquí automáticamente ca
 
 [English](#arroway--plugin) · [Español](#español) · **Português**
 
-Memória compartilhada para um time de pessoas e IAs. Seu time anota o que decidiu; a IA de cada pessoa lê isso antes de agir, e deixa para trás o que alguém que chegar depois precisaria para não refazer o trabalho.
+A [Arroway](https://www.arroway.app/pt-BR) coordena pessoas e agentes de IA em torno das decisões que estão valendo. Seu time anota o que decidiu; a IA de cada pessoa lê isso antes de agir, e deixa para trás o que alguém que chegar depois precisaria para não refazer o trabalho.
 
 Este repositório é o plugin: a conexão com a Arroway, o protocolo de trabalho, e os hooks que fazem um assistente ler antes de mudar qualquer coisa e registrar quando termina.
 
@@ -203,6 +213,10 @@ Aqui também não há nada para colar: o pacote do Cursor carrega o endereço da
 #### Claude no navegador ou no celular
 
 Você não precisa deste repositório: adicione a Arroway como conector, pela mesma página de Conexões.
+
+#### Se quem instala é um agente de IA
+
+Aponte para o [llms-install.md](llms-install.md): os passos de cada cliente, escritos para um agente, inclusive o Cline e qualquer outro cliente MCP.
 
 ### Como usar
 

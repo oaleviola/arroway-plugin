@@ -1,5 +1,7 @@
 # Arroway plugin
 
+[Arroway](https://www.arroway.app) orchestrates people and AI agents around the decisions in force.
+
 **English** · [Español](#español) · [Português](#português)
 
 One install instead of two steps. Before this package, joining Arroway meant adding the connector **and** pasting a seed into your Project or `CLAUDE.md` by hand. The seed is now the skill, and the skill travels with the plugin.
@@ -168,6 +170,8 @@ Every package fix needs a new version. Update the same version in all four relea
 
 The server announces that number as the published version, so it keeps a copy of it in `lib/plugin-version-rules.mjs` and a test fails when the four disagree — a server that announced a version nobody published would send every session chasing an update that does not exist.
 
+The same number also lives in `gemini-extension.json` (the Gemini CLI manifest, published at the root of the public repository) and in the pipe's `PLUGIN_VERSION` (`hooks/arroway-gate.mjs`), and tests fail when either one diverges. The repository's `server.json` carries it as well: the server card reads it, and the MCP registry workflow stamps the plugin's version when it publishes.
+
 Two checks run on every pull request, before anything can merge, and both compare against **what main publishes** rather than against the newest tag:
 
 * the three manifests must name the same plugin and the same version;
@@ -187,6 +191,8 @@ The command checks the package, refuses a dirty plugin tree, verifies that the p
 ## Español
 
 [English](#arroway-plugin) · **Español** · [Português](#português)
+
+[Arroway](https://www.arroway.app/es) coordina a personas y agentes de IA en torno a las decisiones vigentes.
 
 Una instalación en vez de dos pasos. Antes de este paquete, entrar en Arroway significaba añadir el conector **y** pegar a mano una semilla en tu Proyecto o en `CLAUDE.md`. La semilla ahora es la skill, y la skill viaja con el plugin.
 
@@ -354,6 +360,8 @@ Cada arreglo del paquete necesita una versión nueva. Actualiza la misma versió
 
 El servidor anuncia ese número como la versión publicada, así que guarda una copia en `lib/plugin-version-rules.mjs` y un test falla cuando las cuatro no coinciden — un servidor que anunciara una versión que nadie publicó mandaría a cada sesión a perseguir una actualización que no existe.
 
+El mismo número vive también en `gemini-extension.json` (el manifiesto de Gemini CLI, publicado en la raíz del repositorio público) y en el `PLUGIN_VERSION` del conducto (`hooks/arroway-gate.mjs`), y hay tests que fallan cuando cualquiera de los dos diverge. El `server.json` del repositorio también lo lleva: la tarjeta del servidor lo lee, y el workflow del registro de MCP estampa la versión del plugin al publicar.
+
 Dos comprobaciones corren en cada pull request, antes de que nada pueda mezclarse, y las dos comparan contra **lo que publica main**, no contra la etiqueta más nueva:
 
 * los tres manifiestos tienen que nombrar el mismo plugin y la misma versión;
@@ -373,6 +381,8 @@ El comando revisa el paquete, rechaza un árbol de plugin sucio, verifica que el
 ## Português
 
 [English](#arroway-plugin) · [Español](#español) · **Português**
+
+A [Arroway](https://www.arroway.app/pt-BR) coordena pessoas e agentes de IA em torno das decisões que estão valendo.
 
 Uma instalação em vez de dois passos. Antes deste pacote, entrar na Arroway significava adicionar o conector **e** colar uma semente à mão no seu Projeto ou no `CLAUDE.md`. A semente agora é a skill, e a skill viaja junto com o plugin.
 
@@ -539,6 +549,8 @@ Todo conserto do pacote precisa de uma versão nova. Atualize a mesma versão na
 - a entrada `arroway` no `.claude-plugin/marketplace.json` do repositório.
 
 O servidor anuncia esse número como a versão publicada, então ele guarda uma cópia dele no `lib/plugin-version-rules.mjs` e um teste falha quando as quatro discordam — um servidor que anunciasse uma versão que ninguém publicou mandaria toda sessão perseguir uma atualização que não existe.
+
+O mesmo número mora também no `gemini-extension.json` (o manifesto do Gemini CLI, publicado na raiz do repositório público) e no `PLUGIN_VERSION` do cano (`hooks/arroway-gate.mjs`), e há testes que falham quando qualquer um dos dois diverge. O `server.json` do repositório também carrega o número: o cartão do servidor o lê, e o workflow do registro de MCP carimba a versão do plugin na hora de publicar.
 
 Duas conferências rodam em todo pull request, antes de qualquer coisa poder ser mesclada, e as duas comparam contra **o que a main publica**, não contra a etiqueta mais nova:
 

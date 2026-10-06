@@ -5,13 +5,13 @@
     "email": "hello@arroway.app"
   },
   "metadata": {
-    "description": "Shared memory for teams of people and AIs: what the team decided, read by every assistant before it acts."
+    "description": "Arroway orchestrates people and AI agents around the decisions in force."
   },
   "plugins": [
     {
       "name": "arroway",
       "source": "plugin",
-      "description": "Shared memory for a team of people and AIs. Read what the team already decided before you act; leave the residue behind when you finish."
+      "description": "Arroway keeps people and their AIs on the same page. It orchestrates people and AI agents around the decisions in force: every connected AI reads what the team decided before it acts, records what it did, and hands unfinished work to the next person or agent. What an AI proposes waits for a person's approval."
     }
   ]
 }
