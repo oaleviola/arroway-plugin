@@ -77,7 +77,7 @@ It is generated. The source lives elsewhere and is published here automatically 
 
 **Please do not open pull requests or edit files here** — changes made in this repository are overwritten on the next publish, and a fix that lands here never reaches the product. Two edits, one of them silently lost, is the exact failure this note exists to prevent.
 
-Found a problem, or want to suggest something? [www.arroway.app/support](https://www.arroway.app/support). For a security problem, see [SECURITY.md](SECURITY.md). Everyone here follows the [code of conduct](CODE_OF_CONDUCT.md).
+Found a problem, or want to suggest something? [www.arroway.app/support](https://www.arroway.app/support). For a security problem, see [SECURITY.md](SECURITY.md). How to help is in [CONTRIBUTING.md](CONTRIBUTING.md), and everyone here follows the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Links
 
@@ -164,7 +164,7 @@ Es generado. La fuente vive en otro sitio y se publica aquí automáticamente ca
 
 **Por favor, no abras pull requests ni edites archivos aquí** — los cambios hechos en este repositorio se sobrescriben en la siguiente publicación, y un arreglo que aterrice aquí nunca llega al producto. Dos ediciones, una de ellas perdida en silencio, es exactamente el fallo que esta nota existe para evitar.
 
-¿Encontraste un problema, o quieres sugerir algo? [www.arroway.app/es/support](https://www.arroway.app/es/support). Para un problema de seguridad, mira [SECURITY.md](SECURITY.md). Todas las personas aquí siguen el [código de conducta](CODE_OF_CONDUCT.md).
+¿Encontraste un problema, o quieres sugerir algo? [www.arroway.app/es/support](https://www.arroway.app/es/support). Para un problema de seguridad, mira [SECURITY.md](SECURITY.md). Cómo ayudar está en [CONTRIBUTING.md](CONTRIBUTING.md), y todas las personas aquí siguen el [código de conducta](CODE_OF_CONDUCT.md).
 
 ### Enlaces
 
@@ -251,7 +251,7 @@ Ele é gerado. A fonte mora em outro lugar e é publicada aqui automaticamente s
 
 **Por favor, não abra pull requests nem edite arquivos aqui** — mudanças feitas neste repositório são sobrescritas na publicação seguinte, e um conserto que aterrissa aqui nunca chega ao produto. Duas edições, uma delas perdida em silêncio, é exatamente a falha que esta nota existe para evitar.
 
-Encontrou um problema, ou quer sugerir alguma coisa? [www.arroway.app/pt-BR/support](https://www.arroway.app/pt-BR/support). Para um problema de segurança, veja o [SECURITY.md](SECURITY.md). Todo mundo aqui segue o [código de conduta](CODE_OF_CONDUCT.md).
+Encontrou um problema, ou quer sugerir alguma coisa? [www.arroway.app/pt-BR/support](https://www.arroway.app/pt-BR/support). Para um problema de segurança, veja o [SECURITY.md](SECURITY.md). Como ajudar está no [CONTRIBUTING.md](CONTRIBUTING.md), e todo mundo aqui segue o [código de conduta](CODE_OF_CONDUCT.md).
 
 ### Links
 

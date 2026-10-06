@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support / Soporte / Suporte
+    url: https://www.arroway.app/support
+    about: A person reads every message. Write there for help, a copy of your data, or an idea.
+  - name: Security problem / Problema de seguridad / Problema de segurança
+    url: https://github.com/oaleviola/arroway-plugin/blob/main/SECURITY.md
+    about: Please do not open a public issue for a security problem. Follow the policy.
