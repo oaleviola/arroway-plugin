@@ -66,6 +66,8 @@ Add a remote server over Streamable HTTP. In Cline, in `cline_mcp_settings.json`
 
 No headers. Some clients list the tools before anyone signs in; every call still needs the person's sign-in, which the server asks for over OAuth. If the client cannot sign in with OAuth, every call is refused: tell the person instead of retrying.
 
+If the client reads agent skills and has no Arroway plugin, also add the workflow skill: `npx skills add oaleviola/arroway-plugin`. It does not replace the server above.
+
 ## Check that it worked
 
 Call `arroway_catch_up`. Once the person is signed in, it answers with their projects and what happened in them recently.
@@ -140,6 +142,8 @@ Añade un servidor remoto por Streamable HTTP. En Cline, en `cline_mcp_settings.
 
 Sin cabeceras. Algunos clientes muestran las herramientas antes de que alguien inicie sesión; aun así, cada llamada necesita que la persona inicie sesión, y el servidor lo pide por OAuth. Si el cliente no sabe iniciar sesión con OAuth, toda llamada se rechaza: díselo a la persona en vez de reintentar.
 
+Si el cliente lee skills de agente y no tiene plugin de Arroway, añade también la skill de trabajo: `npx skills add oaleviola/arroway-plugin`. No sustituye al servidor de arriba.
+
 ### Comprueba que funcionó
 
 Llama a `arroway_catch_up`. Con la sesión de la persona iniciada, responde con sus proyectos y lo que pasó en ellos últimamente.
@@ -213,6 +217,8 @@ Adicione um servidor remoto por Streamable HTTP. No Cline, no `cline_mcp_setting
 ```
 
 Sem cabeçalhos. Alguns clientes mostram as ferramentas antes de alguém entrar; mesmo assim, toda chamada precisa que a pessoa entre, e o servidor pede isso por OAuth. Se o cliente não souber entrar por OAuth, toda chamada é recusada: avise a pessoa em vez de tentar de novo.
+
+Se o cliente lê skills de agente e não tem plugin da Arroway, adicione também a skill de trabalho: `npx skills add oaleviola/arroway-plugin`. Ela não substitui o servidor acima.
 
 ### Confira que funcionou
 

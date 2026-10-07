@@ -32,6 +32,16 @@ Nothing to paste here: the Cursor package carries Arroway's own address and sign
 
 You don't need this repository: add Arroway as a connector instead, from the same Connections page.
 
+### The skill alone, in any agent that reads skills
+
+If your agent reads agent skills but there is no Arroway plugin for it, add the workflow skill with the [skills](https://skills.sh) CLI:
+
+```
+npx skills add oaleviola/arroway-plugin
+```
+
+The skill teaches your agent to read Arroway before acting and to close each task. It still needs Arroway connected as an MCP server at `https://www.arroway.app/api/mcp`. Where your client has the plugin, use the plugin: it brings the connection and the hooks too.
+
 ### Asking an AI agent to install it
 
 Point it to [llms-install.md](llms-install.md): the steps for each client, written for an agent, Cline and any other MCP client included.
@@ -123,6 +133,16 @@ Aquí tampoco hay nada que pegar: el paquete de Cursor lleva la dirección de Ar
 
 No necesitas este repositorio: añade Arroway como conector, desde la misma página de Conexiones.
 
+#### Solo la skill, en cualquier agente que lea skills
+
+Si tu agente lee skills pero no hay plugin de Arroway para él, añade la skill de trabajo con la CLI de [skills](https://skills.sh):
+
+```
+npx skills add oaleviola/arroway-plugin
+```
+
+La skill le enseña a tu agente a leer Arroway antes de actuar y a cerrar cada tarea. Sigue necesitando Arroway conectada como servidor MCP en `https://www.arroway.app/api/mcp`. Donde tu cliente tiene el plugin, usa el plugin: trae también la conexión y los hooks.
+
 #### Si se lo pides a un agente de IA
 
 Muéstrale [llms-install.md](llms-install.md): los pasos de cada cliente, escritos para un agente, incluidos Cline y cualquier otro cliente MCP.
@@ -213,6 +233,16 @@ Aqui também não há nada para colar: o pacote do Cursor carrega o endereço da
 #### Claude no navegador ou no celular
 
 Você não precisa deste repositório: adicione a Arroway como conector, pela mesma página de Conexões.
+
+#### Só a skill, em qualquer agente que leia skills
+
+Se o seu agente lê skills mas não há plugin da Arroway para ele, adicione a skill de trabalho pela CLI do [skills](https://skills.sh):
+
+```
+npx skills add oaleviola/arroway-plugin
+```
+
+A skill ensina o seu agente a ler a Arroway antes de agir e a fechar cada tarefa. Ela continua precisando da Arroway conectada como servidor MCP em `https://www.arroway.app/api/mcp`. Onde o seu cliente tem o plugin, use o plugin: ele traz também a conexão e os hooks.
 
 #### Se quem instala é um agente de IA
 
