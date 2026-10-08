@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.45";
+const PLUGIN_VERSION = "0.1.46";
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
@@ -132,8 +132,9 @@ function saveJson(file, pasta, valor) {
 
 /**
  * O que o cano guarda, e é a lista completa: a diretiva de sessão que o servidor
- * mandou, a etiqueta de sessão que o servidor emitiu, e a contagem de falhas de
- * rede seguidas. Nada aqui é julgamento — é recado guardado e um contador.
+ * mandou, o filtro de encaminhamento que ele mandou (ARROW-418), a etiqueta de
+ * sessão que o servidor emitiu, e a contagem de falhas de rede seguidas. Nada
+ * aqui é julgamento — é recado guardado e um contador.
  */
 const loadState = (sessionId) => loadJson(sessionFile("directives", sessionId), {});
 const saveState = (sessionId, valor) => saveJson(sessionFile("directives", sessionId), "directives", valor);
@@ -254,8 +255,9 @@ function plainText(response) {
  * A carga, e ela é a lista COMPLETA do que sai desta máquina.
  *
  * Vai: o nome da ferramenta, o texto do comando de shell (e só dele), as versões
- * do cano e do cliente, os dois interruptores do portão, e — depois da
- * ferramenta — se a resposta voltou sem erro e com texto. No fim do turno vai a
+ * do cano e do cliente, os três interruptores do portão, e — depois da
+ * ferramenta — se a resposta voltou sem erro e com texto, e se ela trouxe o
+ * trecho que o servidor pediu para procurar (ARROW-418: um sim ou não). No fim do turno vai a
  * lista do que foi chamado e a CAUDA da última resposta do modelo. Na abertura
  * vão os números dos clones de git desta pasta. A chave opaca de sessão vai SÓ
  * quando há etiqueta para apresentar.
@@ -276,6 +278,7 @@ function payload(wireEvent, event, credentialed, extra = {}) {
     response_has_text: posTool ? hasText(event.tool_response) : false,
     enforce_reading: readingEnforcement(),
     enforce_closing: closingEnforcement(),
+    enforce_checking: checkingEnforcement(),
     plugin_version: PLUGIN_VERSION,
     client: { name: process.env.CLAUDE_CODE_ENTRYPOINT || null, version: null },
     ...extra,
@@ -296,6 +299,12 @@ function readingEnforcement() {
 function closingEnforcement() {
   const configured =
     process.env.ARROWAY_ENFORCE_CLOSING ?? process.env.CLAUDE_PLUGIN_OPTION_ENFORCE_CLOSING ?? "true";
+  return String(configured).toLowerCase() !== "false";
+}
+
+function checkingEnforcement() {
+  const configured =
+    process.env.ARROWAY_ENFORCE_CHECKING ?? process.env.CLAUDE_PLUGIN_OPTION_ENFORCE_CHECKING ?? "true";
   return String(configured).toLowerCase() !== "false";
 }
 
@@ -396,12 +405,61 @@ const WIRE = { start: "session_start", pre: "pre_tool_use", post: "post_tool_use
  * Servidor antigo, que manda a diretiva sem a lista, silencia tudo: era o que ela
  * significava quando o portão de leitura era o único. Mudar o que se silencia
  * volta a ser mudança de servidor.
+ *
+ * ARROW-418 — o silêncio tem exceção, e quem a escreve é o servidor: o evento que
+ * casa com o filtro de encaminhamento fala mesmo calado. O cano não sabe o que o
+ * filtro significa; ele compara.
  */
-function silenced(state, wireEvent) {
+function silenced(state, wireEvent, event) {
   const diretiva = state.directive;
   if (!diretiva?.stop_asking) return false;
-  if (!Array.isArray(diretiva.events)) return true;
-  return diretiva.events.includes(wireEvent);
+  const calado = !Array.isArray(diretiva.events) || diretiva.events.includes(wireEvent);
+  if (!calado) return false;
+  return !forwarded(state, wireEvent, event);
+}
+
+/** Regex vinda do servidor, compilada sem confiar nela: inválida casa com nada. */
+function casa(fonte, texto) {
+  if (typeof fonte !== "string" || typeof texto !== "string") return false;
+  try {
+    return new RegExp(fonte).test(texto);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * ARROW-418 — o evento casa com o filtro que o servidor mandou?
+ *
+ * Antes da ferramenta: nome (e, quando a regra pede, o comando de shell). Depois:
+ * nome, e a resposta CONTÉM o trecho que o servidor nomeou — a resposta é lida
+ * aqui e não sai daqui; o que viaja é só o sim ou o não (`response_match`).
+ */
+function forwarded(state, wireEvent, event) {
+  const filtro = state.forward && typeof state.forward === "object" ? state.forward : null;
+  const nome = String(event?.tool_name || "");
+  if (!filtro || !nome) return false;
+  if (wireEvent === "pre_tool_use") {
+    const input = event.tool_input && typeof event.tool_input === "object" ? event.tool_input : {};
+    const comando = typeof input.command === "string" ? input.command : null;
+    return (Array.isArray(filtro.pre) ? filtro.pre : []).some(
+      (regra) => casa(regra?.tool, nome) && (regra?.command == null || casa(regra.command, comando))
+    );
+  }
+  if (wireEvent === "post_tool_use") return responseMatches(state, event);
+  return false;
+}
+
+function responseMatches(state, event) {
+  const filtro = state.forward && typeof state.forward === "object" ? state.forward : null;
+  const nome = String(event?.tool_name || "");
+  if (!filtro || !nome) return false;
+  const regras = (Array.isArray(filtro.post) ? filtro.post : []).filter(
+    (regra) => casa(regra?.tool, nome) && typeof regra?.response === "string" && regra.response
+  );
+  if (!regras.length) return false;
+  const texto = plainText(event.tool_response);
+  return regras.some((regra) => texto.includes(regra.response));
 }
 
 function print(value) {
@@ -459,7 +517,7 @@ async function main() {
   // Duas razões para não tocar a rede, e as duas são recado guardado: o servidor
   // disse que não há mais nada a perguntar sobre este evento, ou ele não está
   // respondendo.
-  if (state.quiet || silenced(state, wireEvent)) {
+  if (state.quiet || silenced(state, wireEvent, event)) {
     if (mode === "start") abertura(null);
     return;
   }
@@ -497,7 +555,9 @@ async function main() {
         }
       : mode === "start"
         ? { clone_facts: cloneFacts(event.cwd) }
-        : {};
+        : mode === "post"
+          ? { response_match: responseMatches(state, event) }
+          : {};
 
   const { alive, answer } = await ask(
     endpoint,
@@ -529,11 +589,13 @@ async function main() {
     guardar.capability = answer.session_capability;
   }
   if (answer.session_directive?.stop_asking) guardar.directive = answer.session_directive;
+  if (answer.forward && typeof answer.forward === "object") guardar.forward = answer.forward;
   // Grava só quando algo MUDOU: o cano está no caminho de cada ferramenta, e uma
   // escrita em disco por chamada é pedágio sem nada em troca.
   const mudou =
     guardar.capability !== (typeof state.capability === "string" ? state.capability : null) ||
     JSON.stringify(guardar.directive ?? null) !== JSON.stringify(state.directive ?? null) ||
+    JSON.stringify(guardar.forward ?? null) !== JSON.stringify(state.forward ?? null) ||
     (Number(state.networkFailures) || 0) !== 0;
   if (mudou) saveState(event.session_id, guardar);
 

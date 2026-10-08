@@ -82,7 +82,7 @@ Screens from a demo account with sample data.
 ## What is in here
 
 - `plugin/skills/` — the working protocol: read before acting, record when a task ends, hand work forward when you stop
-- `plugin/hooks/` — the gates that ask for those two moments instead of only describing them
+- `plugin/hooks/` — the gates that ask for those two moments instead of only describing them, and for a check of the text before something is published for other people
 - `plugin/.mcp.json` — the Claude Code connection, which uses Arroway's own address; identity comes from signing in
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — the same package as Cursor reads it: its own manifest and hook format, Arroway's own address, no link to paste
 - `plugin/assets/` — icons and wordmarks
@@ -183,7 +183,7 @@ Pantallas de una cuenta de demostración con datos de ejemplo (la interfaz de la
 ### Qué hay aquí
 
 - `plugin/skills/` — el protocolo de trabajo: leer antes de actuar, registrar cuando una tarea termina, pasar el trabajo adelante cuando te detienes
-- `plugin/hooks/` — las compuertas que piden esos dos momentos, en vez de solo describirlos
+- `plugin/hooks/` — las compuertas que piden esos dos momentos, en vez de solo describirlos, y una revisión del texto antes de publicar algo para otras personas
 - `plugin/.mcp.json` — la conexión de Claude Code, que usa la dirección de Arroway; la identidad viene de entrar
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — el mismo paquete tal como lo lee Cursor: su propio manifiesto y su propio formato de hooks, la dirección de Arroway, ningún enlace que pegar
 - `plugin/assets/` — iconos y logotipos
@@ -284,7 +284,7 @@ Telas de uma conta de demonstração com dados de exemplo (a interface dos print
 ### O que tem aqui
 
 - `plugin/skills/` — o protocolo de trabalho: ler antes de agir, registrar quando uma tarefa termina, passar o trabalho adiante quando você para
-- `plugin/hooks/` — os portões que cobram esses dois momentos, em vez de só descrevê-los
+- `plugin/hooks/` — os portões que cobram esses dois momentos, em vez de só descrevê-los, e uma conferência do texto antes de publicar algo para outras pessoas
 - `plugin/.mcp.json` — a conexão do Claude Code, que usa o endereço da própria Arroway; a identidade vem de entrar
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — o mesmo pacote como o Cursor o lê: manifesto e formato de hooks próprios, o endereço da própria Arroway, nenhum link para colar
 - `plugin/assets/` — ícones e logotipos

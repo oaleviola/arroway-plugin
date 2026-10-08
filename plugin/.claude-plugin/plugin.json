@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "arroway",
   "displayName": "Arroway",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "description": "Arroway keeps people and their AIs on the same page. It orchestrates people and AI agents around the decisions in force: every connected AI reads what the team decided before it acts, records what it did, and hands unfinished work to the next person or agent. What an AI proposes waits for a person's approval.",
   "author": {
     "name": "Arroway",
@@ -21,6 +21,12 @@
       "type": "boolean",
       "title": "Ask before ending a turn without a record",
       "description": "When on, a turn that did substantive work but recorded nothing is asked once to close — log, pass it forward, or say there is no durable residue. Substantive means it changed a file, changed something outside this machine, or spent itself investigating. Turn off to keep the workflow guidance without the prompt.",
+      "default": true
+    },
+    "enforce_checking": {
+      "type": "boolean",
+      "title": "Ask for a text check before publishing",
+      "description": "When on, each act that publishes text for other people (a pull request, a comment, a message) is asked once to check that text against what the team decided first. Repeating the same act without checking goes through with a note. Turn off to keep the workflow guidance without the prompt.",
       "default": true
     },
     "enforce_reading": {

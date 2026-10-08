@@ -31,6 +31,8 @@ It also hands you a **map**: the titles and handles of everything else that proj
 
 Reading once at the start does not cover this moment. By the time you are about to assert, what you read may be far behind you.
 
+**Before you publish text for other people** — a pull request, a comment, a message, a page — pass that text to `arroway_norms` as `draft`, ending with one line in the project's language on what it claims, recommends and names. What the text touches comes back in full: read it, and fix the text if it contradicts something. Where the plugin's hooks run, each act of publishing asks for this check once.
+
 ## 3. Close the task — one of three ways, never none
 
 Every task ends in exactly one of these. Choose deliberately; do not skip.

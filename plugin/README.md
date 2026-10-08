@@ -86,12 +86,12 @@ The reading gate is decided by the server, not by the installed package. That is
 * the tool's name;
 * the text of a shell command, and only a shell command — classifying shell requires reading it;
 * an opaque session key, which is your client's session identifier and nothing else — and only when the pipe has a credential to present, because without one there is no state to separate;
-* the plugin version, the client name, and whether you have the gate switched on;
-* after the tool ran: whether the response came back without an error and whether it carried any text.
+* the plugin version, the client name, and whether you have each of the three switches on;
+* after the tool ran: whether the response came back without an error and whether it carried any text — and, for an `arroway_norms` reply, whether it carries the mark of a checked draft: a yes or no, never the reply.
 
 **What is never sent:** file paths, the working directory, file contents, response contents. Not even as a fingerprint. The gate does not need them, so they do not leave.
 
-**The shell command is used to classify the call and for nothing else.** It is never written to the database, never written to a log, and does not outlive the request that carried it. The only thing the gate stores is four fields — whether a read was delivered, whether it already asked for one, whether it already asked you to close this turn, and a request count — and a test locks that list so a fifth field cannot be added without someone noticing. Apart from that state, the closing reminder leaves a dated record twice: when it asks you to record a turn, and when it lets the next stop through. Each record holds your account, the connection and a short tag of the session — nothing from the turn: no tool name, no command, no message. It is how we can tell that the reminder asks once and then lets go. Keep a secret out of a command line anyway: the gate is not the only thing that sees it.
+**The shell command is used to classify the call and for nothing else.** It is never written to the database, never written to a log, and does not outlive the request that carried it. The only thing the gate stores is six fields — whether a read was delivered, whether it already asked for one, whether it already asked you to close this turn, whether a text check was done and not yet used, a fingerprint of the publishing act it already asked about (a short hash of tool and command, never the command), and a request count — and a test locks that list so a seventh field cannot be added without someone noticing. Apart from that state, the closing reminder leaves a dated record twice: when it asks you to record a turn, and when it lets the next stop through. The publishing check leaves one each time it asks, lets an act through after a check, or lets a repeat through without one. Each record holds your account, the connection and a short tag of the session — nothing from the turn: no tool name, no command, no message. It is how we can tell that the reminder asks once and then lets go. Keep a secret out of a command line anyway: the gate is not the only thing that sees it.
 
 **Who the state belongs to.** The gate answers anyone, but it only *remembers* for an authenticated account. Without a credential it reads nothing and writes nothing, and the answer is always the same. The credential is a short-lived session tag that Arroway's server issues inside the first commons read; it binds to the first session that presents it and expires within hours.
 
@@ -99,7 +99,7 @@ The reading gate is decided by the server, not by the installed package. That is
 
 **When the server cannot be reached** — no network, a timeout, an answer it does not understand — the tool proceeds and nothing is printed. There is no local copy of the rules: failing open *is* the degradation. After three network failures in a row the pipe stops trying for the rest of the session, so an unreachable server costs you one short wait instead of one per tool call.
 
-Once the gate can no longer block anything in a session, the server says so and the pipe stops talking to the network for the rest of it.
+Once the gate can no longer block anything in a session, the server says so and the pipe stops talking to the network for the rest of it — except, from version 0.1.46, for the calls the server names: acts that may publish text for other people, and the reply of `arroway_norms`. The server sends that list as plain patterns; the pipe compares names against it and decides nothing.
 
 ## Reading gate and closing reminder
 
@@ -110,6 +110,16 @@ The first mutating file or shell tool in a session is blocked when no `arroway_r
 Whether a read was delivered is decided by the response carrying text, not by its shape: any serialisation a client uses is unwrapped, and only the explicit error markers say no.
 
 After the first read delivered in a session, the server answers with the standing-norms block of the project that was just read — the block `arroway_norms` returns, dated and without its session checkpoint. The pipe keeps it as it came, in the plugin's private data directory, and reinserts it when a session starts in the same directory: the next session in Claude Code, and the next message of the same conversation in Cowork, which reopens the session at every message. It is a copy, not a read: it can be out of date, and it never unlocks a mutation by itself. The block only travels from the server to your machine; the pipe never sends it back. On a clean install there is no cache yet, so the opening context says that plainly and the first mutation still requires `arroway_read`. Current Codex command hooks cannot invoke an OAuth app tool themselves; when Codex supports MCP-tool hooks, the cache can be replaced by a live SessionStart read without changing the protocol.
+
+## Checking text before publishing
+
+Before an act that publishes text for other people — opening or editing a pull request, commenting on an issue or a pull request, creating a release, a connector call that sends a message or posts a comment — the gate asks once for a check: `arroway_norms` with that text as `draft`, which returns in full what the team decided that the text touches. After the check, the act goes through; the next act of publishing asks for its own. `git push`, merge and deploy are delivery of code, not text for people, and are never asked.
+
+**What it is, and what it is not.** It is a check asked for *per act*, not a guarantee about the text. The server sees the shell command and the tool's name, but not the body of a `--body-file` or a connector's arguments — and the pipe does not send them. So what it can say is "a check happened before this act", never "this exact text was checked".
+
+**It never traps a session.** Retry the same act without checking and it goes through, with a visible note. That release holds only for the same act: being stopped on a pull request and then trying a comment asks again. Like the other gates, it only ever asks where the server can keep state for the session.
+
+In Claude Code, set **"Ask for a text check before publishing"** to off in the plugin's configuration. In Codex CLI, start it with `ARROWAY_ENFORCE_CHECKING=false`. Installs before 0.1.46 are never asked: the skill and the reminder at the end of every read carry the same instruction, without the stop.
 
 ## The state of the local clone, said at the opening
 
@@ -276,12 +286,12 @@ La compuerta de lectura la decide el servidor, no el paquete instalado. Eso es l
 * el nombre de la herramienta;
 * el texto de un comando de shell, y solo de un comando de shell — clasificar shell exige leerlo;
 * una clave opaca de sesión, que es el identificador de sesión de tu cliente y nada más — y solo cuando el conducto tiene una credencial que presentar, porque sin ella no hay estado que separar;
-* la versión del plugin, el nombre del cliente, y si tienes la compuerta activada;
-* después de que la herramienta corrió: si la respuesta volvió sin error y si traía algún texto.
+* la versión del plugin, el nombre del cliente, y si tienes activado cada uno de los tres interruptores;
+* después de que la herramienta corrió: si la respuesta volvió sin error y si traía algún texto — y, en la respuesta de `arroway_norms`, si trae la marca de un borrador revisado: un sí o un no, nunca la respuesta.
 
 **Qué no se envía nunca:** rutas de archivos, el directorio de trabajo, el contenido de los archivos, el contenido de las respuestas. Ni siquiera como huella. La compuerta no los necesita, así que no salen.
 
-**El comando de shell se usa para clasificar la llamada y para nada más.** Nunca se escribe en la base de datos, nunca se escribe en un registro, y no sobrevive a la petición que lo llevó. Lo único que la compuerta guarda son cuatro campos — si se entregó una lectura, si ya pidió una, si ya te pidió cerrar este turno, y una cuenta de peticiones —, y hay un test que fija esa lista para que no se pueda añadir un quinto campo sin que alguien lo note. Aparte de ese estado, el recordatorio de cierre deja un registro con fecha dos veces: cuando te pide registrar un turno y cuando deja pasar la parada siguiente. Cada registro lleva tu cuenta, la conexión y una etiqueta corta de la sesión — nada del turno: ni nombre de herramienta, ni comando, ni mensaje. Así sabemos que el recordatorio pide una vez y después suelta. Aun así, mantén los secretos fuera de la línea de comandos: la compuerta no es lo único que la ve.
+**El comando de shell se usa para clasificar la llamada y para nada más.** Nunca se escribe en la base de datos, nunca se escribe en un registro, y no sobrevive a la petición que lo llevó. Lo único que la compuerta guarda son seis campos — si se entregó una lectura, si ya pidió una, si ya te pidió cerrar este turno, si se hizo una revisión de texto que aún no se usó, una huella del acto de publicar por el que ya preguntó (un hash corto de herramienta y comando, nunca el comando), y una cuenta de peticiones —, y hay un test que fija esa lista para que no se pueda añadir un séptimo campo sin que alguien lo note. Aparte de ese estado, el recordatorio de cierre deja un registro con fecha dos veces: cuando te pide registrar un turno y cuando deja pasar la parada siguiente. Cada registro lleva tu cuenta, la conexión y una etiqueta corta de la sesión — nada del turno: ni nombre de herramienta, ni comando, ni mensaje. Así sabemos que el recordatorio pide una vez y después suelta. La revisión antes de publicar deja uno cada vez que pide, deja pasar un acto después de una revisión, o deja pasar una repetición sin ella. Aun así, mantén los secretos fuera de la línea de comandos: la compuerta no es lo único que la ve.
 
 **De quién es el estado.** La compuerta le responde a cualquiera, pero solo *recuerda* para una cuenta autenticada. Sin credencial no lee nada y no escribe nada, y la respuesta es siempre la misma. La credencial es una etiqueta de sesión de vida corta que el servidor de Arroway emite dentro de la primera lectura de la memoria común; queda atada a la primera sesión que la presenta y caduca en unas horas.
 
@@ -289,7 +299,7 @@ La compuerta de lectura la decide el servidor, no el paquete instalado. Eso es l
 
 **Cuando no se puede alcanzar el servidor** — sin red, un tiempo agotado, una respuesta que no entiende — la herramienta sigue adelante y no se imprime nada. No hay copia local de las reglas: fallar abierto *es* la degradación. Tras tres fallos de red seguidos el conducto deja de intentarlo durante el resto de la sesión, así que un servidor inalcanzable te cuesta una espera corta en vez de una por cada llamada.
 
-Cuando la compuerta ya no puede bloquear nada en una sesión, el servidor lo dice y el conducto deja de hablar con la red durante el resto de ella.
+Cuando la compuerta ya no puede bloquear nada en una sesión, el servidor lo dice y el conducto deja de hablar con la red durante el resto de ella — salvo, desde la versión 0.1.46, por las llamadas que el servidor nombra: actos que pueden publicar texto para otras personas, y la respuesta de `arroway_norms`. El servidor manda esa lista como patrones simples; el conducto compara nombres con ella y no decide nada.
 
 ### Compuerta de lectura y recordatorio de cierre
 
@@ -300,6 +310,16 @@ La primera herramienta de archivo o de shell que muta algo en una sesión se blo
 Que una lectura se haya entregado lo decide la respuesta al traer texto, no su forma: cualquier serialización que use un cliente se desenvuelve, y solo los marcadores explícitos de error dicen que no.
 
 Después de la primera lectura entregada en una sesión, el servidor responde con el bloque de normas vigentes del proyecto que se acaba de leer — el bloque que devuelve `arroway_norms`, con fecha y sin su sello de sesión. El conducto lo guarda tal como llegó, en el directorio de datos privado del plugin, y lo reinserta cuando una sesión empieza en el mismo directorio: la siguiente sesión en Claude Code, y el siguiente mensaje de la misma conversación en Cowork, que reabre la sesión a cada mensaje. Es una copia, no una lectura: puede estar desactualizada y nunca desbloquea una mutación por sí sola. El bloque solo viaja del servidor a tu máquina; el conducto nunca lo devuelve. En una instalación limpia todavía no hay caché, así que el contexto de apertura lo dice con claridad y la primera mutación sigue exigiendo `arroway_read`. Los hooks de comando actuales de Codex no pueden invocar por sí mismos una herramienta de app OAuth; cuando Codex soporte hooks de herramienta MCP, el caché se puede sustituir por una lectura en vivo en `SessionStart` sin cambiar el protocolo.
+
+### Revisar el texto antes de publicar
+
+Antes de un acto que publica texto para otras personas — abrir o editar un pull request, comentar en un issue o un pull request, crear un release, una llamada de conector que manda un mensaje o publica un comentario — la compuerta pide una vez una revisión: `arroway_norms` con ese texto como `draft`, que devuelve completo lo que el equipo decidió y el texto toca. Después de la revisión, el acto pasa; el siguiente acto de publicar pide la suya. `git push`, merge y deploy son entrega de código, no texto para personas, y nunca se piden.
+
+**Qué es, y qué no es.** Es una revisión pedida *por acto*, no una garantía sobre el texto. El servidor ve el comando de shell y el nombre de la herramienta, pero no el cuerpo de un `--body-file` ni los argumentos de un conector — y el conducto no los manda. Así que lo que puede decir es "hubo una revisión antes de este acto", nunca "este texto exacto fue revisado".
+
+**Nunca deja una sesión atascada.** Reintenta el mismo acto sin revisar y pasa, con una nota visible. Esa liberación vale solo para el mismo acto: frenado en un pull request, intentar después un comentario pide de nuevo. Como las otras compuertas, solo pide donde el servidor puede guardar estado para la sesión.
+
+En Claude Code, pon **"Ask for a text check before publishing"** en off, en la configuración del plugin. En Codex CLI, arráncalo con `ARROWAY_ENFORCE_CHECKING=false`. Las instalaciones anteriores a la 0.1.46 nunca reciben el pedido: la skill y el recordatorio al final de cada lectura llevan la misma instrucción, sin el freno.
 
 ### El estado del clon local, dicho en la apertura
 
@@ -466,12 +486,12 @@ Quem decide o portão de leitura é o servidor, não o pacote instalado. É isso
 * o nome da ferramenta;
 * o texto de um comando de shell, e só de um comando de shell — classificar shell exige ler o comando;
 * uma chave opaca de sessão, que é o identificador de sessão do seu cliente e nada mais — e só quando o cano tem uma credencial para apresentar, porque sem ela não há estado a separar;
-* a versão do plugin, o nome do cliente, e se você está com o portão ligado;
-* depois que a ferramenta rodou: se a resposta voltou sem erro e se ela trazia algum texto.
+* a versão do plugin, o nome do cliente, e se você está com cada um dos três interruptores ligado;
+* depois que a ferramenta rodou: se a resposta voltou sem erro e se ela trazia algum texto — e, na resposta do `arroway_norms`, se ela traz a marca de rascunho conferido: um sim ou um não, nunca a resposta.
 
 **O que nunca é enviado:** caminho de arquivo, o diretório de trabalho, conteúdo de arquivo, conteúdo de resposta. Nem como impressão digital. O portão não precisa disso, então isso não sai.
 
-**O comando de shell é usado para classificar a chamada e para mais nada.** Nunca é escrito no banco, nunca é escrito em log, e não sobrevive à requisição que o carregou. A única coisa que o portão guarda são quatro campos — se uma leitura foi entregue, se ele já pediu uma, se ele já pediu para você fechar este turno, e uma contagem de requisições —, e existe um teste que trava essa lista para que um quinto campo não entre sem alguém perceber. Fora esse estado, o lembrete de fechamento deixa um registro com data em dois momentos: quando pede para você registrar o turno e quando deixa a parada seguinte passar. Cada registro guarda a sua conta, a conexão e uma etiqueta curta da sessão — nada do turno: nem nome de ferramenta, nem comando, nem mensagem. É por ele que se sabe que o lembrete pede uma vez e depois solta. Mantenha segredo fora da linha de comando mesmo assim: o portão não é a única coisa que a enxerga.
+**O comando de shell é usado para classificar a chamada e para mais nada.** Nunca é escrito no banco, nunca é escrito em log, e não sobrevive à requisição que o carregou. A única coisa que o portão guarda são seis campos — se uma leitura foi entregue, se ele já pediu uma, se ele já pediu para você fechar este turno, se uma conferência de texto foi feita e ainda não foi usada, uma impressão digital do ato de publicar que ele já cobrou (um hash curto de ferramenta e comando, nunca o comando), e uma contagem de requisições —, e existe um teste que trava essa lista para que um sétimo campo não entre sem alguém perceber. Fora esse estado, o lembrete de fechamento deixa um registro com data em dois momentos: quando pede para você registrar o turno e quando deixa a parada seguinte passar. A conferência antes de publicar deixa um a cada vez que cobra, que deixa um ato passar depois da conferência, ou que deixa uma repetição passar sem ela. Cada registro guarda a sua conta, a conexão e uma etiqueta curta da sessão — nada do turno: nem nome de ferramenta, nem comando, nem mensagem. É por ele que se sabe que o lembrete pede uma vez e depois solta. Mantenha segredo fora da linha de comando mesmo assim: o portão não é a única coisa que a enxerga.
 
 **De quem é o estado.** O portão responde a qualquer um, mas só *lembra* de uma conta autenticada. Sem credencial ele não lê nada e não escreve nada, e a resposta é sempre a mesma. A credencial é uma etiqueta de sessão de vida curta que o servidor da Arroway emite dentro da primeira leitura da memória comum; ela se prende à primeira sessão que a apresenta e expira em poucas horas.
 
@@ -479,7 +499,7 @@ Quem decide o portão de leitura é o servidor, não o pacote instalado. É isso
 
 **Quando o servidor não pode ser alcançado** — sem rede, tempo esgotado, uma resposta que ele não entende — a ferramenta segue e nada é impresso. Não existe cópia local das regras: falhar aberto *é* a degradação. Depois de três falhas de rede seguidas o cano para de tentar pelo resto da sessão, então um servidor inalcançável custa uma espera curta em vez de uma por chamada de ferramenta.
 
-Quando o portão já não pode bloquear nada numa sessão, o servidor diz isso e o cano para de falar com a rede pelo resto dela.
+Quando o portão já não pode bloquear nada numa sessão, o servidor diz isso e o cano para de falar com a rede pelo resto dela — exceto, a partir da versão 0.1.46, pelas chamadas que o servidor nomeia: atos que podem publicar texto para outras pessoas, e a resposta do `arroway_norms`. O servidor manda essa lista como padrões simples; o cano compara nomes com ela e não decide nada.
 
 ### Portão de leitura e lembrete de fechamento
 
@@ -490,6 +510,16 @@ A primeira ferramenta de arquivo ou de shell que muta alguma coisa numa sessão 
 Se uma leitura foi entregue, quem decide é a resposta ter trazido texto, não o formato dela: qualquer serialização que um cliente use é desembrulhada, e só os marcadores explícitos de erro dizem que não.
 
 Depois da primeira leitura entregue numa sessão, o servidor responde com o bloco de normas vigentes do projeto que acabou de ser lido — o bloco que o `arroway_norms` devolve, com data e sem o carimbo de sessão. O cano o guarda como veio, no diretório de dados privado do plugin, e o reinsere quando uma sessão começa no mesmo diretório: a próxima sessão no Claude Code, e a próxima mensagem da mesma conversa no Cowork, que reabre a sessão a cada mensagem. É uma cópia, não uma leitura: pode estar desatualizada e nunca libera uma mutação sozinha. O bloco só viaja do servidor para a sua máquina; o cano nunca o manda de volta. Numa instalação limpa ainda não existe cache, então o contexto de abertura diz isso com todas as letras e a primeira mutação continua exigindo `arroway_read`. Os hooks de comando atuais do Codex não conseguem invocar sozinhos uma ferramenta de app OAuth; quando o Codex suportar hooks de ferramenta MCP, o cache pode ser substituído por uma leitura ao vivo no `SessionStart` sem mudar o protocolo.
+
+### Conferir o texto antes de publicar
+
+Antes de um ato que publica texto para outras pessoas — abrir ou editar um pull request, comentar numa issue ou num pull request, criar um release, uma chamada de conector que manda mensagem ou publica comentário — o portão pede uma conferência, uma vez: `arroway_norms` com esse texto em `draft`, que devolve inteiro o que o time decidiu e o texto toca. Depois da conferência, o ato passa; o próximo ato de publicar pede a dele. `git push`, merge e deploy são entrega de código, não texto para pessoas, e nunca são cobrados.
+
+**O que é, e o que não é.** É uma conferência cobrada *por ato*, não uma garantia sobre o texto. O servidor vê o comando de shell e o nome da ferramenta, mas não o corpo de um `--body-file` nem os argumentos de um conector — e o cano não os manda. Então o que ele pode dizer é "houve uma conferência antes deste ato", nunca "este texto exato foi conferido".
+
+**Nunca prende a sessão.** Tente o mesmo ato de novo sem conferir e ele passa, com uma nota visível. Essa liberação vale só para o mesmo ato: barrado num pull request, tentar depois um comentário cobra de novo. Como os outros portões, ele só cobra onde o servidor consegue guardar estado da sessão.
+
+No Claude Code, ponha **"Ask for a text check before publishing"** em off, na configuração do plugin. No Codex CLI, inicie-o com `ARROWAY_ENFORCE_CHECKING=false`. Instalações anteriores à 0.1.46 nunca são cobradas: a skill e o lembrete no fim de toda leitura levam a mesma instrução, sem a parada.
 
 ### O estado do clone local, dito na abertura
 

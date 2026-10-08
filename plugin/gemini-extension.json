@@ -1,6 +1,6 @@
 {
   "name": "arroway",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "description": "Arroway orchestrates people and AI agents around the decisions in force.",
   "mcpServers": {
     "arroway": {
