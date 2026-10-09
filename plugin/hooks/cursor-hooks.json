@@ -6,6 +6,12 @@
         "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" start"
       }
     ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" prompt",
+        "timeout": 10
+      }
+    ],
     "preToolUse": [
       {
         "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" pre",
@@ -18,9 +24,17 @@
         "matcher": ".*"
       }
     ],
+    "afterAgentResponse": [
+      {
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" response",
+        "timeout": 10
+      }
+    ],
     "stop": [
       {
-        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" stop"
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" stop",
+        "timeout": 700,
+        "loop_limit": null
       }
     ],
     "sessionEnd": [

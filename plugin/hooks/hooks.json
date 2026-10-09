@@ -10,6 +10,17 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" prompt",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": ".*",
@@ -32,12 +43,35 @@
         ]
       }
     ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" permission",
+            "timeout": 40
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" stop"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" stop",
+            "timeout": 700,
+            "statusMessage": "Arroway"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" bell",
+            "asyncRewake": true,
+            "timeout": 7200
           }
         ]
       }
@@ -47,7 +81,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" cleanup"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/arroway-gate.mjs\" cleanup",
+            "timeout": 3
           }
         ]
       }

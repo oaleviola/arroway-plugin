@@ -80,7 +80,31 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.46";
+const PLUGIN_VERSION = "0.1.48";
+
+/**
+ * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
+ *
+ * O portão está no caminho de cada ferramenta e espera no máximo 1,5 s. O
+ * cockpit só fala na parada e na abertura do prompt, e a parada segurada é uma
+ * espera por desenho: cada `listen` pode durar até 25 s no servidor.
+ */
+const COCKPIT_TIMEOUT_MS = 5000;
+const LISTEN_SLICE_MS = 25_000;
+const LISTEN_MARGIN_MS = 7000;
+// ARROW-430 — o servidor espera até 20 s pela decisão do cockpit; a folga cobre
+// a ida e a volta. O `timeout` do gancho no hooks.json é maior que os dois.
+const APPROVAL_TIMEOUT_MS = 20_000 + LISTEN_MARGIN_MS;
+/** A campainha vive no máximo isto; o cliente a mata antes, pelo timeout do gancho. */
+const BELL_LIFETIME_MS = 2 * 60 * 60 * 1000;
+/**
+ * Tempo para o relato da parada (que roda em paralelo) gravar se o cockpit está
+ * ligado. Encurtável só no processo de teste, como a porta canônica.
+ */
+const BELL_SETTLE_MS =
+  process.env.NODE_ENV === "test" && process.env.ARROWAY_TEST_BELL_SETTLE_MS
+    ? Number(process.env.ARROWAY_TEST_BELL_SETTLE_MS)
+    : 4000;
 
 /**
  * A porta do portão é pública e única. Ela não é a URL de conexão: conexão
@@ -400,6 +424,108 @@ async function ask(endpoint, body, credential) {
 const WIRE = { start: "session_start", pre: "pre_tool_use", post: "post_tool_use", stop: "stop" };
 
 /**
+ * Os modos do cockpit (ARROW-427), que não passam pelo portão:
+ *   · `prompt` — a pessoa mandou um prompt: a sessão volta a trabalhar, e todo
+ *     ouvinte de parada anterior morre (é o que o servidor faz ao receber isto);
+ *   · `response` — o Cursor entrega a resposta do agente num gancho próprio, e
+ *     o `stop` dele não a traz; ela fica guardada para o fim do turno;
+ *   · `bell` — a campainha, só no Claude Code;
+ *   · `permission` — o agente pediu permissão para uma ferramenta, e a pessoa
+ *     pode decidir pelo cockpit (ARROW-430). Claude Code e Codex.
+ */
+const COCKPIT_MODES = ["prompt", "response", "bell", "permission"];
+
+/**
+ * Qual cliente está rodando, lido do FORMATO do evento e nunca do ambiente: o
+ * Codex herda o ambiente de quem o abriu, e aberto de dentro do Claude Code ele
+ * carrega até `CLAUDE_CODE_ENTRYPOINT` (medido em 08/10). O Cursor manda
+ * `cursor_version`; o Codex manda `turn_id`.
+ */
+function harnessOf(event) {
+  if (typeof event?.cursor_version === "string") return "cursor";
+  if (typeof event?.turn_id === "string") return "codex";
+  if (process.env.CLAUDE_CODE_ENTRYPOINT) return "claude-code";
+  return "other";
+}
+
+/** Sessão de automação (`claude -p`, SDK): o servidor nunca a segura. */
+function isAutomation(harness) {
+  return harness === "claude-code" && String(process.env.CLAUDE_CODE_ENTRYPOINT || "").startsWith("sdk");
+}
+
+/** O nome da pasta, e só ele: o caminho não sai daqui. */
+function folderOf(event) {
+  const raiz =
+    typeof event?.cwd === "string" && event.cwd
+      ? event.cwd
+      : Array.isArray(event?.workspace_roots) && typeof event.workspace_roots[0] === "string"
+        ? event.workspace_roots[0]
+        : "";
+  const partes = raiz.split(/[\\/]+/).filter(Boolean);
+  return partes.length ? partes[partes.length - 1] : null;
+}
+
+function cockpitEndpoint() {
+  try {
+    return new URL("/api/plugin/cockpit", new URL(CANONICAL_GATE_ORIGIN).origin).toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * O aviso do cockpit, guardado NA MÁQUINA e não na sessão: é na abertura da
+ * PRÓXIMA sessão que ele precisa estar, antes de qualquer credencial. O texto é
+ * do servidor; o cano guarda e imprime. Cockpit desligado apaga o arquivo.
+ */
+const cockpitNoteFile = () => join(dataRoot(), "cockpit", "note.json");
+const loadCockpitNote = () => loadJson(cockpitNoteFile(), null);
+function saveCockpitNote(note) {
+  saveJson(cockpitNoteFile(), "cockpit", { note, enabled: true, at: Date.now() });
+}
+function clearCockpitNote() {
+  try {
+    rmSync(cockpitNoteFile(), { force: true });
+  } catch {
+    /* nada a recuperar */
+  }
+}
+
+async function askCockpit(body, credential, timeoutMs) {
+  const endpoint = cockpitEndpoint();
+  if (!endpoint || !credential) return { alive: false, answer: null };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resposta = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${credential}` },
+      body: JSON.stringify({ protocol: PROTOCOL, ...body }),
+      signal: controller.signal,
+    });
+    if (!resposta.ok) return { alive: true, answer: null };
+    const json = await resposta.json();
+    const valido = json && typeof json === "object" && json.protocol === PROTOCOL;
+    return { alive: true, answer: valido ? json : null };
+  } catch {
+    return { alive: false, answer: null };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Continuar o turno com um texto, no formato que cada cliente espera: o Cursor
+ * lê `followup_message` (ARROW-422); Claude Code e Codex leem `block` + `reason`.
+ */
+function printContinuation(harness, text) {
+  if (harness === "cursor") print({ followup_message: text });
+  else print({ decision: "block", reason: text });
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
  * A diretiva nomeia QUAIS eventos ela silencia, e o cano compara nomes.
  *
  * Servidor antigo, que manda a diretiva sem a lista, silencia tudo: era o que ela
@@ -466,99 +592,239 @@ function print(value) {
   process.stdout.write(JSON.stringify(value));
 }
 
-async function main() {
-  const mode = process.argv[2];
-  if (!Object.hasOwn(WIRE, mode) && mode !== "cleanup") return;
-
-  let event = {};
-  try {
-    event = JSON.parse(readFileSync(0, "utf8") || "{}");
-  } catch {
-    return;
-  }
-
-  if (mode === "cleanup") {
-    endSession(event.session_id);
-    return;
-  }
-
-  const wireEvent = WIRE[mode];
-  const state = loadState(event.session_id);
-
-  // O TURNO É LOCAL E ACONTECE SEMPRE, calado ou não: a observação não depende de
-  // o servidor estar respondendo, e o turno tem que estar inteiro quando ele for
-  // perguntado no fim.
-  let turn = loadTurn(event.session_id);
-  if (mode === "start") {
-    turn = { seen: [] };
-    saveTurn(event.session_id, turn);
-  }
-  if (mode === "post") {
-    const nome = String(event.tool_name || "");
-    if (nome && turn.seen.length < MAX_TURN_OBSERVATIONS) {
-      const entrada = event.tool_input && typeof event.tool_input === "object" ? event.tool_input : {};
-      turn.seen.push({ tool: nome, command: typeof entrada.command === "string" ? entrada.command : null });
-      saveTurn(event.session_id, turn);
-    }
-  }
-
-  // O bloco de normas é local e sai mesmo sem rede: é o que a sessão precisa ver
-  // antes de qualquer coisa, e ele já está em disco.
-  const normas =
-    mode === "start"
-      ? loadNorms(dataRoot(), event.cwd) ||
-        "Arroway has no delivered norms cached for this directory yet. Before the first mutation, call arroway_read for the project; a successful delivered response unlocks mutations for this session. If no Arroway tools are available in this session, the connection has not been signed in yet: tell the person, and ask them to sign in to Arroway in this client (in Claude Code: run /mcp and sign in to plugin:arroway:arroway). Until then nothing is read or recorded, so do not present anything as coming from Arroway."
-      : "";
-  const abertura = (extra) => {
-    const texto = extra ? `${extra}\n\n${normas}` : normas;
-    print({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: texto } });
+/**
+ * ARROW-427 — a parada, do lado do cockpit: relatar e, SE O SERVIDOR MANDAR,
+ * segurar.
+ *
+ * Quem decide se segura, por quanto tempo e o que entregar é o servidor; o cano
+ * só obedece o `hold_ms` e repete o `listen` até o prazo. O conteúdo (a última
+ * mensagem do agente) só sai quando o cockpit da pessoa está ligado — e o cano
+ * só sabe disso porque o servidor já disse, numa parada anterior; na primeira,
+ * o servidor pede (`wants_content`) e o cano manda em seguida.
+ *
+ * Devolve o texto a entregar, ou nulo. Qualquer falha é nulo: a parada solta.
+ */
+async function cockpitAtStop(event, state, harness, lastMessage, forcedMessage) {
+  const credential = typeof state.capability === "string" ? state.capability : null;
+  if (!credential || state.quiet) return null;
+  const sessionKey = String(event.session_id || "");
+  const base = {
+    mode: "report",
+    session_key: sessionKey,
+    harness,
+    state: "idle",
+    model: typeof event.model === "string" ? event.model : null,
+    label: folderOf(event),
+    automation: isAutomation(harness),
+  };
+  const conteudo = {
+    last_message: typeof lastMessage === "string" ? lastMessage : "",
+    ...(typeof forcedMessage === "string" ? { forced_message: forcedMessage } : {}),
   };
 
-  // Duas razões para não tocar a rede, e as duas são recado guardado: o servidor
-  // disse que não há mais nada a perguntar sobre este evento, ou ele não está
-  // respondendo.
-  if (state.quiet || silenced(state, wireEvent, event)) {
-    if (mode === "start") abertura(null);
-    return;
+  const sabeLigado = Boolean(loadCockpitNote()?.enabled);
+  let { answer } = await askCockpit(sabeLigado ? { ...base, ...conteudo } : base, credential, COCKPIT_TIMEOUT_MS);
+  if (!answer) return null;
+  if (!answer.enabled) {
+    clearCockpitNote();
+    const agora = loadState(event.session_id);
+    if (agora.cockpit) saveState(event.session_id, { ...agora, cockpit: undefined });
+    return null;
   }
-
-  const endpoint = gateEndpoint();
-  if (!endpoint) {
-    if (mode === "start") abertura(null);
-    return;
+  if (typeof answer.session_note === "string" && answer.session_note.trim()) saveCockpitNote(answer.session_note);
+  if (answer.wants_content) {
+    const segundo = await askCockpit({ ...base, ...conteudo }, credential, COCKPIT_TIMEOUT_MS);
+    if (segundo.answer?.enabled) answer = segundo.answer;
   }
+  saveState(event.session_id, { ...loadState(event.session_id), cockpit: { enabled: true, bell: answer.bell === true } });
 
-  // A etiqueta chega dentro da resposta da leitura, então ela é colhida ANTES de
-  // perguntar: é o que faz a mesma requisição já sair autenticada.
-  let capability = typeof state.capability === "string" ? state.capability : null;
-  if (mode === "post") {
-    const colhida = capabilityFromResponse(event.tool_response);
-    if (colhida && colhida !== capability) {
-      capability = colhida;
-      saveState(event.session_id, { ...state, capability });
+  const segurar = Number(answer.hold_ms) || 0;
+  const geracao = answer.generation;
+  if (segurar <= 0 || !Number.isInteger(geracao)) return null;
+  const prazo = Date.now() + segurar;
+  for (;;) {
+    const falta = prazo - Date.now();
+    if (falta < 1000) return null;
+    const espera = Math.min(LISTEN_SLICE_MS, falta);
+    const ouvido = await askCockpit(
+      { mode: "listen", session_key: sessionKey, harness, generation: geracao, wait_ms: espera },
+      credential,
+      espera + LISTEN_MARGIN_MS
+    );
+    if (!ouvido.answer || !ouvido.answer.enabled) return null;
+    if (typeof ouvido.answer.message === "string" && ouvido.answer.message.trim()) return ouvido.answer.message;
+    if (ouvido.answer.superseded) return null;
+  }
+}
+
+/**
+ * A pessoa mandou um prompt: a sessão volta a trabalhar. Para o servidor, isto
+ * mata qualquer ouvinte de parada anterior — no Cursor a parada velha continua
+ * viva durante o turno novo (ARROW-422). Sem conteúdo nenhum.
+ */
+async function cockpitPrompt(event, state) {
+  const credential = typeof state.capability === "string" ? state.capability : null;
+  if (!credential || state.quiet || !state.cockpit?.enabled) return;
+  const harness = harnessOf(event);
+  await askCockpit(
+    {
+      mode: "report",
+      session_key: String(event.session_id || ""),
+      harness,
+      state: "working",
+      model: typeof event.model === "string" ? event.model : null,
+      label: folderOf(event),
+      automation: isAutomation(harness),
+    },
+    credential,
+    COCKPIT_TIMEOUT_MS
+  );
+}
+
+/**
+ * O que a pessoa vê no cockpit sobre o pedido: o comando de shell, ou a
+ * descrição que o cliente mostraria, ou só o NOME do arquivo — o caminho não sai
+ * daqui, pela mesma régua do nome da pasta.
+ */
+function permissionSummary(event) {
+  const entrada = event?.tool_input && typeof event.tool_input === "object" ? event.tool_input : {};
+  if (typeof entrada.command === "string" && entrada.command.trim()) return entrada.command;
+  if (typeof entrada.description === "string" && entrada.description.trim()) return entrada.description;
+  if (typeof entrada.file_path === "string") {
+    const partes = entrada.file_path.split(/[\\/]+/).filter(Boolean);
+    if (partes.length) return partes[partes.length - 1];
+  }
+  return null;
+}
+
+/**
+ * ARROW-430 — o agente pediu permissão para uma ferramenta, e a janela vai
+ * perguntar à pessoa. Antes, o cano pergunta ao cockpit se ela decidiu por lá.
+ *
+ * Quem decide se vale esperar, e por quanto, é o servidor: só com o cockpit
+ * aberto há pouco, e no máximo 20 s. O cano só traduz a decisão para o formato
+ * do cliente. Sem decisão — ou qualquer falha — não imprime nada, e a janela
+ * pergunta como sempre.
+ *
+ * Só Claude Code e Codex. No Cursor o `allow` não dispensa a pergunta local
+ * (ARROW-422), e nenhum gancho dele chama este modo.
+ */
+async function cockpitPermission(event) {
+  const harness = harnessOf(event);
+  if (harness !== "claude-code" && harness !== "codex") return;
+  const state = loadState(event.session_id);
+  const credential = typeof state.capability === "string" ? state.capability : null;
+  if (!credential || state.quiet) return;
+  // Cockpit desligado não ganha nem a pergunta: a sessão sabe depois da primeira
+  // parada; antes dela, vale o aviso que o servidor deixou nesta máquina.
+  if (!state.cockpit?.enabled && !loadCockpitNote()?.enabled) return;
+  const nome = typeof event.tool_name === "string" ? event.tool_name : "";
+  if (!nome) return;
+  const { answer } = await askCockpit(
+    {
+      mode: "approval",
+      session_key: String(event.session_id || ""),
+      harness,
+      tool_name: nome,
+      summary: permissionSummary(event),
+      model: typeof event.model === "string" ? event.model : null,
+      label: folderOf(event),
+      automation: isAutomation(harness),
+    },
+    credential,
+    APPROVAL_TIMEOUT_MS
+  );
+  if (!answer?.enabled) return;
+  if (answer.decision === "allow") {
+    print({ hookSpecificOutput: { hookEventName: "PermissionRequest", decision: { behavior: "allow" } } });
+  } else if (answer.decision === "deny") {
+    // O motivo é o texto do servidor, como em toda recusa do cano.
+    const motivo = typeof answer.message === "string" ? answer.message : "";
+    print({ hookSpecificOutput: { hookEventName: "PermissionRequest", decision: { behavior: "deny", message: motivo } } });
+  }
+}
+
+/** A trava da campainha: uma por sessão, e a de um processo morto não vale. */
+function bellLock(sessionId) {
+  const arquivo = sessionFile("bell", sessionId);
+  if (!arquivo) return null;
+  const atual = loadJson(arquivo, null);
+  if (atual && Number.isInteger(atual.pid) && atual.pid !== process.pid) {
+    try {
+      process.kill(atual.pid, 0);
+      return null;
+    } catch {
+      /* processo morto: a trava é dele, e ele não volta */
     }
   }
+  saveJson(arquivo, "bell", { pid: process.pid, at: Date.now() });
+  return () => {
+    try {
+      if (loadJson(arquivo, null)?.pid === process.pid) rmSync(arquivo, { force: true });
+    } catch {
+      /* nada a recuperar */
+    }
+  };
+}
+
+/**
+ * ARROW-427 — a campainha: SÓ NO CLAUDE CODE, que roda este modo em segundo
+ * plano (`asyncRewake`). O Codex lê o mesmo `hooks.json`, ignora essa chave e
+ * roda o modo de forma SÍNCRONA (medido em 08/10) — por isso qualquer outro
+ * cliente sai daqui na hora, antes de esperar qualquer coisa.
+ *
+ * Ela não entrega a mensagem: quando o servidor manda tocar, ela acorda a sessão
+ * com o texto do servidor (um "pare e espere"), e a parada seguinte, segurada,
+ * é quem entrega. Devolve 2 para tocar, como o cliente pede.
+ */
+async function bell(event) {
+  if (harnessOf(event) !== "claude-code") return 0;
+  const sessionId = event.session_id;
+  const soltar = bellLock(sessionId);
+  if (!soltar) return 0;
+  try {
+    await sleep(BELL_SETTLE_MS);
+    const fim = Date.now() + BELL_LIFETIME_MS;
+    let falhas = 0;
+    while (Date.now() < fim) {
+      const state = loadState(sessionId);
+      const credential = typeof state.capability === "string" ? state.capability : null;
+      if (!credential || state.quiet || !state.cockpit?.enabled || !state.cockpit?.bell) return 0;
+      const { alive, answer } = await askCockpit(
+        { mode: "bell", session_key: String(sessionId || ""), harness: "claude-code", wait_ms: LISTEN_SLICE_MS },
+        credential,
+        LISTEN_SLICE_MS + LISTEN_MARGIN_MS
+      );
+      if (!alive) {
+        if (++falhas >= NETWORK_FAILURES_BEFORE_QUIET) return 0;
+        await sleep(5000);
+        continue;
+      }
+      falhas = 0;
+      if (!answer || !answer.enabled || answer.closed) return 0;
+      if (answer.ring && typeof answer.message === "string" && answer.message.trim()) {
+        process.stderr.write(answer.message);
+        return 2;
+      }
+    }
+    return 0;
+  } finally {
+    soltar();
+  }
+}
+
+/**
+ * A consulta ao portão, com tudo o que ela guarda. Devolve a resposta e o estado
+ * novo, ou nulo quando não houve resposta que valesse — e nulo é falhar aberto.
+ */
+async function consultGate(mode, wireEvent, event, state, capability, extra) {
+  const endpoint = gateEndpoint();
+  if (!endpoint) return null;
 
   // A etiqueta é a ÚNICA credencial que sai daqui: emitida pelo servidor,
   // guardada na pasta de dados do próprio plugin e devolvida só a ele. Sem ela
   // o pedido vai anônimo — e anônimo é o caminho sem estado, não uma recusa.
   const credential = capability;
-
-  const extra =
-    mode === "stop"
-      ? {
-          observations: turn.seen,
-          last_message_tail:
-            typeof event.last_assistant_message === "string"
-              ? event.last_assistant_message.slice(-MAX_MESSAGE_TAIL)
-              : null,
-        }
-      : mode === "start"
-        ? { clone_facts: cloneFacts(event.cwd) }
-        : mode === "post"
-          ? { response_match: responseMatches(state, event) }
-          : {};
-
   const { alive, answer } = await ask(
     endpoint,
     payload(wireEvent, event, Boolean(credential), extra),
@@ -573,15 +839,13 @@ async function main() {
       networkFailures: falhas,
       ...(falhas >= NETWORK_FAILURES_BEFORE_QUIET ? { quiet: true } : {}),
     });
-    if (mode === "start") abertura(null);
-    return;
+    return null;
   }
 
   // Versão que não é a nossa não é interpretada: os dois lados falham abertos.
   if (!answer || answer.protocol !== PROTOCOL) {
     if (state.networkFailures) saveState(event.session_id, { ...state, capability, networkFailures: 0 });
-    if (mode === "start") abertura(null);
-    return;
+    return null;
   }
 
   const guardar = { ...state, capability, networkFailures: 0 };
@@ -609,11 +873,185 @@ async function main() {
   }
 
   const message = typeof answer.message === "string" && answer.message.trim() ? answer.message : null;
+  return { answer, message };
+}
 
-  if (mode === "start") {
-    abertura(message);
+/**
+ * O fim do turno: primeiro o portão de fechamento, depois o cockpit — UM
+ * PROCESSO SÓ, nesta ordem, de propósito. O cliente espera todos os ganchos de
+ * parada terminarem antes de aplicar qualquer um; com a parada segurada num
+ * gancho à parte, a cobrança do portão chegava só depois da espera inteira
+ * (medido no Desktop em 08/10, ARROW-420).
+ *
+ * Cobrou: devolve na hora, sem segurar, e guarda a resposta de ANTES da
+ * cobrança — é ela a "última mensagem"; a que vier depois é a mensagem forçada
+ * (decisão do Ale para a v1: mostrar as duas).
+ */
+async function finishStop(event, turn, resultado, harness, ultimaMensagem) {
+  const answer = resultado?.answer ?? null;
+  if (answer?.decision === "deny") {
+    // Turno barrado NÃO limpa o que foi observado: a segunda parada precisa
+    // enxergar o mesmo turno, senão ela veria um turno vazio e passaria por
+    // engano em vez de por decisão.
+    saveTurn(event.session_id, {
+      ...turn,
+      pendingLast: typeof turn.pendingLast === "string" ? turn.pendingLast : ultimaMensagem,
+    });
+    printContinuation(harness, resultado.message ?? "");
     return;
   }
+
+  const forcada = typeof turn.pendingLast === "string" ? ultimaMensagem : null;
+  const ultima = typeof turn.pendingLast === "string" ? turn.pendingLast : ultimaMensagem;
+  // O turno só se encerra quando o portão respondeu liberando, como sempre foi;
+  // a resposta guardada para o cockpit sai em qualquer caso.
+  const { pendingLast: _p, lastResponse: _r, ...resto } = turn;
+  saveTurn(event.session_id, answer ? { seen: [] } : resto);
+
+  const entrega = await cockpitAtStop(event, loadState(event.session_id), harness, ultima, forcada);
+  if (entrega) {
+    printContinuation(harness, entrega);
+    return;
+  }
+  if (resultado?.message) print({ systemMessage: resultado.message });
+}
+
+async function main() {
+  const mode = process.argv[2];
+  if (!Object.hasOwn(WIRE, mode) && mode !== "cleanup" && !COCKPIT_MODES.includes(mode)) return 0;
+
+  let event = {};
+  try {
+    event = JSON.parse(readFileSync(0, "utf8") || "{}");
+  } catch {
+    return 0;
+  }
+
+  if (mode === "bell") return bell(event);
+
+  if (mode === "cleanup") {
+    // ARROW-427 — o cockpit fica sabendo que a sessão acabou, e a campainha dela
+    // vai embora na próxima consulta. Só com o cockpit ligado e credencial.
+    const anterior = loadState(event.session_id);
+    if (anterior.cockpit?.enabled && typeof anterior.capability === "string" && !anterior.quiet) {
+      await askCockpit(
+        { mode: "end", session_key: String(event.session_id || ""), harness: harnessOf(event) },
+        anterior.capability,
+        TIMEOUT_MS
+      );
+    }
+    endSession(event.session_id);
+    return 0;
+  }
+
+  if (mode === "prompt") {
+    await cockpitPrompt(event, loadState(event.session_id));
+    return 0;
+  }
+
+  if (mode === "permission") {
+    await cockpitPermission(event);
+    return 0;
+  }
+
+  if (mode === "response") {
+    // O Cursor entrega a resposta do agente aqui, e o `stop` dele não a traz.
+    if (typeof event.text === "string") {
+      saveTurn(event.session_id, { ...loadTurn(event.session_id), lastResponse: event.text });
+    }
+    return 0;
+  }
+
+  const wireEvent = WIRE[mode];
+  const state = loadState(event.session_id);
+  const harness = harnessOf(event);
+
+  // O TURNO É LOCAL E ACONTECE SEMPRE, calado ou não: a observação não depende de
+  // o servidor estar respondendo, e o turno tem que estar inteiro quando ele for
+  // perguntado no fim.
+  let turn = loadTurn(event.session_id);
+  if (mode === "start") {
+    turn = { seen: [] };
+    saveTurn(event.session_id, turn);
+  }
+  if (mode === "post") {
+    const nome = String(event.tool_name || "");
+    if (nome && turn.seen.length < MAX_TURN_OBSERVATIONS) {
+      const entrada = event.tool_input && typeof event.tool_input === "object" ? event.tool_input : {};
+      turn.seen.push({ tool: nome, command: typeof entrada.command === "string" ? entrada.command : null });
+      saveTurn(event.session_id, turn);
+    }
+  }
+
+  // A última resposta do modelo: o Claude Code e o Codex a trazem no próprio
+  // `stop`; o Cursor, no gancho `afterAgentResponse`, guardada no turno.
+  const ultimaMensagem =
+    typeof event.last_assistant_message === "string"
+      ? event.last_assistant_message
+      : typeof turn.lastResponse === "string"
+        ? turn.lastResponse
+        : null;
+
+  // O bloco de normas é local e sai mesmo sem rede: é o que a sessão precisa ver
+  // antes de qualquer coisa, e ele já está em disco.
+  const normas =
+    mode === "start"
+      ? loadNorms(dataRoot(), event.cwd) ||
+        "Arroway has no delivered norms cached for this directory yet. Before the first mutation, call arroway_read for the project; a successful delivered response unlocks mutations for this session. If no Arroway tools are available in this session, the connection has not been signed in yet: tell the person, and ask them to sign in to Arroway in this client (in Claude Code: run /mcp and sign in to plugin:arroway:arroway). Until then nothing is read or recorded, so do not present anything as coming from Arroway."
+      : "";
+  // ARROW-427 — o aviso do cockpit, também local: o servidor o mandou numa
+  // parada anterior, e é aqui, antes de qualquer credencial, que ele vale.
+  const nota = mode === "start" ? loadCockpitNote() : null;
+  const avisoCockpit = nota?.enabled && typeof nota.note === "string" ? nota.note : "";
+  const abertura = (extra) => {
+    const texto = [extra, avisoCockpit, normas].filter(Boolean).join("\n\n");
+    if (harness === "cursor") print({ additional_context: texto });
+    else print({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: texto } });
+  };
+
+  // A etiqueta chega dentro da resposta da leitura, então ela é colhida ANTES de
+  // perguntar: é o que faz a mesma requisição já sair autenticada.
+  let capability = typeof state.capability === "string" ? state.capability : null;
+  if (mode === "post") {
+    const colhida = capabilityFromResponse(event.tool_response);
+    if (colhida && colhida !== capability) {
+      capability = colhida;
+      saveState(event.session_id, { ...state, capability });
+    }
+  }
+
+  const extra =
+    mode === "stop"
+      ? {
+          observations: turn.seen,
+          last_message_tail: typeof ultimaMensagem === "string" ? ultimaMensagem.slice(-MAX_MESSAGE_TAIL) : null,
+        }
+      : mode === "start"
+        ? { clone_facts: cloneFacts(event.cwd) }
+        : mode === "post"
+          ? { response_match: responseMatches(state, event) }
+          : {};
+
+  // Duas razões para não tocar a rede do portão, e as duas são recado guardado:
+  // o servidor disse que não há mais nada a perguntar sobre este evento, ou ele
+  // não está respondendo. A parada segue para o cockpit mesmo assim.
+  const resultado =
+    state.quiet || silenced(state, wireEvent, event)
+      ? null
+      : await consultGate(mode, wireEvent, event, { ...state, capability }, capability, extra);
+
+  if (mode === "start") {
+    abertura(resultado?.message ?? null);
+    return 0;
+  }
+
+  if (mode === "stop") {
+    await finishStop(event, turn, resultado, harness, ultimaMensagem);
+    return 0;
+  }
+
+  if (!resultado) return 0;
+  const { answer, message } = resultado;
 
   if (mode === "pre" && answer.decision === "deny") {
     // O cano devolve permitir/bloquear no formato que o cliente espera, e o
@@ -625,28 +1063,19 @@ async function main() {
         permissionDecisionReason: message ?? "",
       },
     });
-    return;
-  }
-
-  if (mode === "stop") {
-    if (answer.decision === "deny") {
-      // Turno barrado NÃO limpa o que foi observado: a segunda parada precisa
-      // enxergar o mesmo turno, senão ela veria um turno vazio e passaria por
-      // engano em vez de por decisão.
-      print({ decision: "block", reason: message ?? "" });
-      return;
-    }
-    saveTurn(event.session_id, { seen: [] });
-    if (message) print({ systemMessage: message });
-    return;
+    return 0;
   }
 
   if (message) print({ systemMessage: message });
+  return 0;
 }
 
+let codigo = 0;
 try {
-  await main();
+  codigo = await main();
 } catch {
   // Deliberadamente silencioso: stdout vazio, código de saída 0, a sessão segue.
 }
-process.exit(0);
+// O único código diferente de zero é o toque da campainha (2), que o cliente lê
+// como "acorde a sessão com o que saiu em stderr".
+process.exit(codigo === 2 ? 2 : 0);

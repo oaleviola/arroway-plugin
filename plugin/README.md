@@ -89,7 +89,7 @@ The reading gate is decided by the server, not by the installed package. That is
 * the plugin version, the client name, and whether you have each of the three switches on;
 * after the tool ran: whether the response came back without an error and whether it carried any text — and, for an `arroway_norms` reply, whether it carries the mark of a checked draft: a yes or no, never the reply.
 
-**What is never sent:** file paths, the working directory, file contents, response contents. Not even as a fingerprint. The gate does not need them, so they do not leave.
+**What is never sent:** file paths, the working directory, file contents, response contents. Not even as a fingerprint. The gate does not need them, so they do not leave. The one exception is yours to turn on: with the cockpit on, the agent's last reply goes to the cockpit (see **The cockpit** below).
 
 **The shell command is used to classify the call and for nothing else.** It is never written to the database, never written to a log, and does not outlive the request that carried it. The only thing the gate stores is six fields — whether a read was delivered, whether it already asked for one, whether it already asked you to close this turn, whether a text check was done and not yet used, a fingerprint of the publishing act it already asked about (a short hash of tool and command, never the command), and a request count — and a test locks that list so a seventh field cannot be added without someone noticing. Apart from that state, the closing reminder leaves a dated record twice: when it asks you to record a turn, and when it lets the next stop through. The publishing check leaves one each time it asks, lets an act through after a check, or lets a repeat through without one. Each record holds your account, the connection and a short tag of the session — nothing from the turn: no tool name, no command, no message. It is how we can tell that the reminder asks once and then lets go. Keep a secret out of a command line anyway: the gate is not the only thing that sees it.
 
@@ -100,6 +100,26 @@ The reading gate is decided by the server, not by the installed package. That is
 **When the server cannot be reached** — no network, a timeout, an answer it does not understand — the tool proceeds and nothing is printed. There is no local copy of the rules: failing open *is* the degradation. After three network failures in a row the pipe stops trying for the rest of the session, so an unreachable server costs you one short wait instead of one per tool call.
 
 Once the gate can no longer block anything in a session, the server says so and the pipe stops talking to the network for the rest of it — except, from version 0.1.46, for the calls the server names: acts that may publish text for other people, and the reply of `arroway_norms`. The server sends that list as plain patterns; the pipe compares names against it and decides nothing.
+
+## The cockpit (from 0.1.47)
+
+The Arroway cockpit shows your agent sessions in one place and lets you send a message to a session that is waiting for you. It stays off until you turn it on in the Arroway panel, and while it is off the pipe sends nothing new.
+
+**What changes when it is on**
+
+* When a turn ends, the pipe tells the server that the session is waiting. It sends the name of the folder (never the path), the model when the client reports one, and the agent's last reply in full — plus, when the closing reminder made the agent continue, the reply that came after it. That text is kept so the cockpit can show it to you, and only to you. It is erased after a short time, when you archive the session, or when you turn the cockpit off.
+* When you send a prompt, the pipe says the session is working again. The prompt itself is not sent.
+* When the session ends, the pipe says so.
+
+**How a message reaches the agent.** When the server has a reason — a message waiting, or your cockpit open — the stop hook waits a short while for it: up to 90 seconds in Claude Code, up to 10 minutes in Codex and Cursor. The message continues the turn with the prefix "From <your name>, via Arroway:", and a note at the start of each session tells the agent that messages with that prefix come from you. Nothing you type in the window is lost: in Cursor it goes at once, in Codex Esc sends it at once, and in Claude Code it runs when the short wait ends.
+
+**The bell (Claude Code only).** After a turn ends, a background hook waits for messages for up to two hours. When one arrives and nothing is listening, it wakes the session with a request to stop and wait, and the next stop delivers the message. Codex and Cursor have no equivalent, so a message sent after the wait ended reaches the agent at its next stop.
+
+**Approving from the cockpit (from 0.1.48, Claude Code and Codex).** When the agent asks permission to run a tool and your cockpit was open in the last few minutes, the permission hook sends the request to the server: the tool name and the command, or the description the window would show, or only the file name (never the path). It then waits up to 20 seconds for you to allow or deny it in the cockpit. If you answer in time, the window does not ask. If you do not, the window asks as usual. A denial reaches the agent with a short note saying it came from you. The request is kept like the rest of the cockpit's text, and it is never sent while the cockpit is off. Cursor is left out: its hook runs on every shell command, and its "allow" does not skip the question in the window.
+
+**Where it works.** Claude Code (terminal and desktop app), Codex (after you trust the plugin's hooks in `/hooks`), and Cursor's interactive agent. `cursor-agent -p` does not run the stop hook, so those sessions cannot receive messages.
+
+The session note and the bell's words come from the server, like every other word the pipe prints.
 
 ## Reading gate and closing reminder
 
@@ -289,7 +309,7 @@ La compuerta de lectura la decide el servidor, no el paquete instalado. Eso es l
 * la versión del plugin, el nombre del cliente, y si tienes activado cada uno de los tres interruptores;
 * después de que la herramienta corrió: si la respuesta volvió sin error y si traía algún texto — y, en la respuesta de `arroway_norms`, si trae la marca de un borrador revisado: un sí o un no, nunca la respuesta.
 
-**Qué no se envía nunca:** rutas de archivos, el directorio de trabajo, el contenido de los archivos, el contenido de las respuestas. Ni siquiera como huella. La compuerta no los necesita, así que no salen.
+**Qué no se envía nunca:** rutas de archivos, el directorio de trabajo, el contenido de los archivos, el contenido de las respuestas. Ni siquiera como huella. La compuerta no los necesita, así que no salen. La única excepción la activas tú: con el cockpit activado, la última respuesta del agente va al cockpit (mira **El cockpit** más abajo).
 
 **El comando de shell se usa para clasificar la llamada y para nada más.** Nunca se escribe en la base de datos, nunca se escribe en un registro, y no sobrevive a la petición que lo llevó. Lo único que la compuerta guarda son seis campos — si se entregó una lectura, si ya pidió una, si ya te pidió cerrar este turno, si se hizo una revisión de texto que aún no se usó, una huella del acto de publicar por el que ya preguntó (un hash corto de herramienta y comando, nunca el comando), y una cuenta de peticiones —, y hay un test que fija esa lista para que no se pueda añadir un séptimo campo sin que alguien lo note. Aparte de ese estado, el recordatorio de cierre deja un registro con fecha dos veces: cuando te pide registrar un turno y cuando deja pasar la parada siguiente. Cada registro lleva tu cuenta, la conexión y una etiqueta corta de la sesión — nada del turno: ni nombre de herramienta, ni comando, ni mensaje. Así sabemos que el recordatorio pide una vez y después suelta. La revisión antes de publicar deja uno cada vez que pide, deja pasar un acto después de una revisión, o deja pasar una repetición sin ella. Aun así, mantén los secretos fuera de la línea de comandos: la compuerta no es lo único que la ve.
 
@@ -300,6 +320,26 @@ La compuerta de lectura la decide el servidor, no el paquete instalado. Eso es l
 **Cuando no se puede alcanzar el servidor** — sin red, un tiempo agotado, una respuesta que no entiende — la herramienta sigue adelante y no se imprime nada. No hay copia local de las reglas: fallar abierto *es* la degradación. Tras tres fallos de red seguidos el conducto deja de intentarlo durante el resto de la sesión, así que un servidor inalcanzable te cuesta una espera corta en vez de una por cada llamada.
 
 Cuando la compuerta ya no puede bloquear nada en una sesión, el servidor lo dice y el conducto deja de hablar con la red durante el resto de ella — salvo, desde la versión 0.1.46, por las llamadas que el servidor nombra: actos que pueden publicar texto para otras personas, y la respuesta de `arroway_norms`. El servidor manda esa lista como patrones simples; el conducto compara nombres con ella y no decide nada.
+
+### El cockpit (desde la 0.1.47)
+
+El cockpit de Arroway muestra tus sesiones de agente en un solo lugar y te deja enviar un mensaje a una sesión que te está esperando. Está apagado hasta que lo actives en el panel de Arroway, y apagado el conducto no envía nada nuevo.
+
+**Qué cambia cuando está activado**
+
+* Cuando termina un turno, el conducto le avisa al servidor que la sesión está esperando. Envía el nombre de la carpeta (nunca la ruta), el modelo cuando el cliente lo informa, y la última respuesta del agente completa — y, cuando el recordatorio de cierre hizo que el agente siguiera, también la respuesta que vino después. Ese texto se guarda para que el cockpit te lo muestre, solo a ti. Se borra al poco tiempo, cuando archivas la sesión o cuando desactivas el cockpit.
+* Cuando envías un prompt, el conducto avisa que la sesión volvió a trabajar. El prompt en sí no se envía.
+* Cuando la sesión termina, el conducto lo avisa.
+
+**Cómo le llega un mensaje al agente.** Cuando el servidor tiene un motivo — un mensaje esperando, o tu cockpit abierto —, el hook de parada espera un rato por él: hasta 90 segundos en Claude Code, hasta 10 minutos en Codex y Cursor. El mensaje continúa el turno con el prefijo "From <tu nombre>, via Arroway:", y un aviso al inicio de cada sesión le dice al agente que los mensajes con ese prefijo vienen de ti. Nada de lo que escribas en la ventana se pierde: en Cursor sale enseguida, en Codex Esc lo envía enseguida, y en Claude Code corre cuando termina la espera corta.
+
+**El timbre (solo Claude Code).** Cuando termina un turno, un hook en segundo plano espera mensajes hasta dos horas. Cuando llega uno y nada está escuchando, despierta la sesión con un pedido de parar y esperar, y la parada siguiente entrega el mensaje. Codex y Cursor no tienen equivalente, así que un mensaje enviado después de que terminó la espera le llega al agente en su próxima parada.
+
+**Aprobar desde el cockpit (desde la 0.1.48, Claude Code y Codex).** Cuando el agente pide permiso para usar una herramienta y tu cockpit estuvo abierto en los últimos minutos, el hook de permiso envía el pedido al servidor: el nombre de la herramienta y el comando, o la descripción que mostraría la ventana, o solo el nombre del archivo (nunca la ruta). Luego espera hasta 20 segundos a que lo permitas o lo deniegues en el cockpit. Si respondes a tiempo, la ventana no pregunta. Si no, la ventana pregunta como siempre. Una denegación le llega al agente con una nota corta que dice que vino de ti. El pedido se guarda como el resto del texto del cockpit, y nunca se envía con el cockpit desactivado. Cursor queda fuera: su hook corre en cada comando de shell, y su "allow" no evita la pregunta en la ventana.
+
+**Dónde funciona.** Claude Code (terminal y app de escritorio), Codex (después de que confías en los hooks del plugin en `/hooks`) y el agente interactivo de Cursor. `cursor-agent -p` no corre el hook de parada, así que esas sesiones no reciben mensajes.
+
+El aviso de la sesión y las palabras del timbre vienen del servidor, como cada palabra que imprime el conducto.
 
 ### Compuerta de lectura y recordatorio de cierre
 
@@ -489,7 +529,7 @@ Quem decide o portão de leitura é o servidor, não o pacote instalado. É isso
 * a versão do plugin, o nome do cliente, e se você está com cada um dos três interruptores ligado;
 * depois que a ferramenta rodou: se a resposta voltou sem erro e se ela trazia algum texto — e, na resposta do `arroway_norms`, se ela traz a marca de rascunho conferido: um sim ou um não, nunca a resposta.
 
-**O que nunca é enviado:** caminho de arquivo, o diretório de trabalho, conteúdo de arquivo, conteúdo de resposta. Nem como impressão digital. O portão não precisa disso, então isso não sai.
+**O que nunca é enviado:** caminho de arquivo, o diretório de trabalho, conteúdo de arquivo, conteúdo de resposta. Nem como impressão digital. O portão não precisa disso, então isso não sai. A única exceção é você quem liga: com o cockpit ligado, a última resposta do agente vai para o cockpit (veja **O cockpit** abaixo).
 
 **O comando de shell é usado para classificar a chamada e para mais nada.** Nunca é escrito no banco, nunca é escrito em log, e não sobrevive à requisição que o carregou. A única coisa que o portão guarda são seis campos — se uma leitura foi entregue, se ele já pediu uma, se ele já pediu para você fechar este turno, se uma conferência de texto foi feita e ainda não foi usada, uma impressão digital do ato de publicar que ele já cobrou (um hash curto de ferramenta e comando, nunca o comando), e uma contagem de requisições —, e existe um teste que trava essa lista para que um sétimo campo não entre sem alguém perceber. Fora esse estado, o lembrete de fechamento deixa um registro com data em dois momentos: quando pede para você registrar o turno e quando deixa a parada seguinte passar. A conferência antes de publicar deixa um a cada vez que cobra, que deixa um ato passar depois da conferência, ou que deixa uma repetição passar sem ela. Cada registro guarda a sua conta, a conexão e uma etiqueta curta da sessão — nada do turno: nem nome de ferramenta, nem comando, nem mensagem. É por ele que se sabe que o lembrete pede uma vez e depois solta. Mantenha segredo fora da linha de comando mesmo assim: o portão não é a única coisa que a enxerga.
 
@@ -500,6 +540,26 @@ Quem decide o portão de leitura é o servidor, não o pacote instalado. É isso
 **Quando o servidor não pode ser alcançado** — sem rede, tempo esgotado, uma resposta que ele não entende — a ferramenta segue e nada é impresso. Não existe cópia local das regras: falhar aberto *é* a degradação. Depois de três falhas de rede seguidas o cano para de tentar pelo resto da sessão, então um servidor inalcançável custa uma espera curta em vez de uma por chamada de ferramenta.
 
 Quando o portão já não pode bloquear nada numa sessão, o servidor diz isso e o cano para de falar com a rede pelo resto dela — exceto, a partir da versão 0.1.46, pelas chamadas que o servidor nomeia: atos que podem publicar texto para outras pessoas, e a resposta do `arroway_norms`. O servidor manda essa lista como padrões simples; o cano compara nomes com ela e não decide nada.
+
+### O cockpit (desde a 0.1.47)
+
+O cockpit da Arroway mostra suas sessões de agente num lugar só e deixa você mandar mensagem para uma sessão que está esperando por você. Ele fica desligado até você ligá-lo no painel da Arroway, e desligado o cano não manda nada novo.
+
+**O que muda com ele ligado**
+
+* Quando um turno termina, o cano avisa o servidor que a sessão está esperando. Ele manda o nome da pasta (nunca o caminho), o modelo quando o cliente informa, e a última resposta do agente inteira — e, quando o lembrete de fechamento fez o agente continuar, também a resposta que veio depois. Esse texto é guardado para o cockpit mostrar a você, e só a você. Ele é apagado depois de pouco tempo, quando você arquiva a sessão ou quando desliga o cockpit.
+* Quando você manda um prompt, o cano avisa que a sessão voltou a trabalhar. O prompt em si não é enviado.
+* Quando a sessão termina, o cano avisa.
+
+**Como a mensagem chega ao agente.** Quando o servidor tem motivo — uma mensagem esperando, ou o seu cockpit aberto —, o gancho de parada espera um pouco por ela: até 90 segundos no Claude Code, até 10 minutos no Codex e no Cursor. A mensagem continua o turno com o prefixo "From <seu nome>, via Arroway:", e um aviso na abertura de cada sessão diz ao agente que mensagens com esse prefixo vêm de você. Nada do que você digita na janela se perde: no Cursor vai na hora, no Codex o Esc manda na hora, e no Claude Code roda quando a espera curta acaba.
+
+**A campainha (só no Claude Code).** Depois que um turno termina, um gancho em segundo plano espera mensagens por até duas horas. Quando chega uma e nada está escutando, ele acorda a sessão com um pedido de parar e esperar, e a parada seguinte entrega a mensagem. O Codex e o Cursor não têm equivalente: mensagem enviada depois que a espera acabou chega ao agente na parada seguinte dele.
+
+**Aprovar pelo cockpit (desde a 0.1.48, Claude Code e Codex).** Quando o agente pede permissão para usar uma ferramenta e o seu cockpit esteve aberto nos últimos minutos, o gancho de permissão manda o pedido ao servidor: o nome da ferramenta e o comando, ou a descrição que a janela mostraria, ou só o nome do arquivo (nunca o caminho). Depois espera até 20 segundos você permitir ou negar no cockpit. Se você responde a tempo, a janela não pergunta. Se não, a janela pergunta como sempre. A negação chega ao agente com um aviso curto de que veio de você. O pedido é guardado como o resto do texto do cockpit, e nunca sai com o cockpit desligado. O Cursor fica de fora: o gancho dele roda em todo comando de shell, e o "allow" dele não dispensa a pergunta na janela.
+
+**Onde funciona.** Claude Code (terminal e app), Codex (depois que você confia nos ganchos do plugin em `/hooks`) e o agente interativo do Cursor. O `cursor-agent -p` não roda o gancho de parada, então essas sessões não recebem mensagem.
+
+O aviso da sessão e as palavras da campainha vêm do servidor, como toda palavra que o cano imprime.
 
 ### Portão de leitura e lembrete de fechamento
 
