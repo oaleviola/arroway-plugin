@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "arroway",
   "displayName": "Arroway",
-  "version": "0.1.48",
+  "version": "0.1.49",
   "description": "Arroway keeps people and their AIs on the same page. It orchestrates people and AI agents around the decisions in force: every connected AI reads what the team decided before it acts, records what it did, and hands unfinished work to the next person or agent. What an AI proposes waits for a person's approval.",
   "author": {
     "name": "Arroway",

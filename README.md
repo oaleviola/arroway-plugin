@@ -46,9 +46,11 @@ The skill teaches your agent to read Arroway before acting and to close each tas
 
 Point it to [llms-install.md](llms-install.md): the steps for each client, written for an agent, Cline and any other MCP client included.
 
-## Using it
+## Usage
 
 Once you are signed in there is nothing to call by hand: the skill tells your assistant when to use Arroway. It happens at four moments, and this is what each one looks like.
+
+### Examples
 
 1. **Before it acts.** You ask: *"Draft the pricing page for the new plan."* The assistant first calls `arroway_read` for your project and answers from what the team already decided. If two decisions conflict, it tells you instead of picking one.
 2. **Before it commits to a claim.** `arroway_norms` returns what is already decided, at a fraction of the cost of a full read, right before the assistant tells you something or proposes a course of action.
@@ -97,7 +99,7 @@ Found a problem, or want to suggest something? [www.arroway.app/support](https:/
 
 ## Links
 
-[Arroway](https://www.arroway.app) · [How it works](https://www.arroway.app/how-it-works) · [Privacy](https://www.arroway.app/privacy) · [Terms](https://www.arroway.app/terms)
+[Arroway](https://www.arroway.app) · [How it works](https://www.arroway.app/how-it-works) · [Privacy](https://www.arroway.app/privacy) · [Terms](https://www.arroway.app/terms) · [Changelog](CHANGELOG.md#english)
 
 ---
 
@@ -147,9 +149,11 @@ La skill le enseña a tu agente a leer Arroway antes de actuar y a cerrar cada t
 
 Muéstrale [llms-install.md](llms-install.md): los pasos de cada cliente, escritos para un agente, incluidos Cline y cualquier otro cliente MCP.
 
-### Cómo se usa
+### Uso
 
 Una vez que has entrado, no hay nada que invocar a mano: la skill le dice a tu asistente cuándo usar Arroway. Ocurre en cuatro momentos, y así se ve cada uno.
+
+#### Ejemplos
 
 1. **Antes de actuar.** Tú pides: *«Redacta la página de precios del plan nuevo».* El asistente primero llama a `arroway_read` para tu proyecto y responde a partir de lo que el equipo ya decidió. Si dos decisiones se contradicen, te lo dice en vez de elegir una.
 2. **Antes de afirmar algo.** `arroway_norms` devuelve lo que ya está decidido, por una fracción del costo de una lectura completa, justo antes de que el asistente te diga algo o proponga un camino.
@@ -198,7 +202,7 @@ Es generado. La fuente vive en otro sitio y se publica aquí automáticamente ca
 
 ### Enlaces
 
-[Arroway](https://www.arroway.app/es) · [Cómo funciona](https://www.arroway.app/es/how-it-works) · [Privacidad](https://www.arroway.app/es/privacy) · [Términos](https://www.arroway.app/es/terms)
+[Arroway](https://www.arroway.app/es) · [Cómo funciona](https://www.arroway.app/es/how-it-works) · [Privacidad](https://www.arroway.app/es/privacy) · [Términos](https://www.arroway.app/es/terms) · [Cambios por versión](CHANGELOG.md#español)
 
 ---
 
@@ -248,9 +252,11 @@ A skill ensina o seu agente a ler a Arroway antes de agir e a fechar cada tarefa
 
 Aponte para o [llms-install.md](llms-install.md): os passos de cada cliente, escritos para um agente, inclusive o Cline e qualquer outro cliente MCP.
 
-### Como usar
+### Uso
 
 Depois que você entrou, não há nada para chamar na mão: a skill diz ao seu assistente quando usar a Arroway. Acontece em quatro momentos, e é assim que cada um aparece.
+
+#### Exemplos
 
 1. **Antes de agir.** Você pede: *"Escreva a página de preços do plano novo."* O assistente primeiro chama `arroway_read` para o seu projeto e responde a partir do que o time já decidiu. Se duas decisões se contradizem, ele avisa em vez de escolher uma.
 2. **Antes de afirmar algo.** `arroway_norms` devolve o que já está decidido, por uma fração do custo de uma leitura completa, logo antes de o assistente te dizer algo ou propor um caminho.
@@ -299,4 +305,4 @@ Encontrou um problema, ou quer sugerir alguma coisa? [www.arroway.app/pt-BR/supp
 
 ### Links
 
-[Arroway](https://www.arroway.app/pt-BR) · [Como funciona](https://www.arroway.app/pt-BR/how-it-works) · [Privacidade](https://www.arroway.app/pt-BR/privacy) · [Termos](https://www.arroway.app/pt-BR/terms)
+[Arroway](https://www.arroway.app/pt-BR) · [Como funciona](https://www.arroway.app/pt-BR/how-it-works) · [Privacidade](https://www.arroway.app/pt-BR/privacy) · [Termos](https://www.arroway.app/pt-BR/terms) · [Mudanças por versão](CHANGELOG.md#português)

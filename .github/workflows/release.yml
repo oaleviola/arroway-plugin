@@ -1,0 +1,36 @@
+# ARROW-454 — a Release do repositório público, uma por versão do plugin.
+#
+# Este arquivo mora em oaleviola/arroway-app (docs/mirror-github/workflows/) e é
+# copiado para o espelho pelo mirror-plugin.yml. Lá, o espelhamento empurra uma
+# etiqueta anotada `vX.Y.Z` — igual ao `version` do plugin.json — com as notas da
+# versão na mensagem. Este workflow transforma a etiqueta em Release com o token
+# do próprio espelho: nenhum segredo de um repositório entra no outro.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Criar a Release da etiqueta, se ainda não existir
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "a Release $TAG já existe"
+            exit 0
+          fi
+          git tag -l --format='%(contents)' "$TAG" > notes.md
+          [ -s notes.md ] || echo "Arroway plugin ${TAG#v}." > notes.md
+          gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag --latest
