@@ -31,6 +31,10 @@ jobs:
             echo "a Release $TAG já existe"
             exit 0
           fi
+          # No push de etiqueta, o actions/checkout troca a etiqueta anotada por uma
+          # leve no clone, e aí %(contents) devolve a mensagem do commit (foi o que
+          # saiu na v0.1.49). Trazer a anotada de volta antes de ler as notas.
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
           git tag -l --format='%(contents)' "$TAG" > notes.md
           [ -s notes.md ] || echo "Arroway plugin ${TAG#v}." > notes.md
           gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag --latest
