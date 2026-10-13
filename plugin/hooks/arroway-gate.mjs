@@ -28,7 +28,7 @@
 // duplicar julgamento no cliente recria exatamente o problema que este arquivo
 // existe para resolver.
 
-import { createHash } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.49";
+const PLUGIN_VERSION = "0.1.51";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -440,10 +440,16 @@ const COCKPIT_MODES = ["prompt", "response", "bell", "permission"];
  * Codex herda o ambiente de quem o abriu, e aberto de dentro do Claude Code ele
  * carrega até `CLAUDE_CODE_ENTRYPOINT` (medido em 08/10). O Cursor manda
  * `cursor_version`; o Codex manda `turn_id`.
+ *
+ * O Cowork (ARROW-469) roda o mesmo Claude Code por baixo, com a porta de
+ * entrada `local-agent` (a mesma que `lib/plugin-version-rules.mjs` reconhece).
+ * Ele é programa próprio para o cockpit: fecha a sessão a cada mensagem, então
+ * não tem parada para segurar, campainha nem aprovação.
  */
 function harnessOf(event) {
   if (typeof event?.cursor_version === "string") return "cursor";
   if (typeof event?.turn_id === "string") return "codex";
+  if (process.env.CLAUDE_CODE_ENTRYPOINT === "local-agent") return "cowork";
   if (process.env.CLAUDE_CODE_ENTRYPOINT) return "claude-code";
   return "other";
 }
@@ -698,13 +704,62 @@ function permissionSummary(event) {
 }
 
 /**
+ * ARROW-470 — a impressão do pedido de permissão, calculada AQUI, na máquina:
+ * sha256 da sessão, da ferramenta e da entrada dela em JSON com as chaves em
+ * ordem. É o que prende uma aprovação do cockpit a este comando exato.
+ */
+function canonicalJson(valor) {
+  if (Array.isArray(valor)) return `[${valor.map(canonicalJson).join(",")}]`;
+  if (valor && typeof valor === "object") {
+    const chaves = Object.keys(valor).sort();
+    return `{${chaves.map((k) => `${JSON.stringify(k)}:${canonicalJson(valor[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(valor ?? null);
+}
+
+function permissionFingerprint(event) {
+  const entrada = event?.tool_input && typeof event.tool_input === "object" ? event.tool_input : {};
+  return createHash("sha256")
+    .update(`${String(event?.session_id || "")}\n${String(event?.tool_name || "")}\n${canonicalJson(entrada)}`)
+    .digest("hex");
+}
+
+const APPROVAL_BINDING_VERSION = "arroway-approval-v1";
+
+/**
+ * ARROW-470 — um "allow" só vale se vier amarrado a ESTE pedido: a mesma
+ * impressão, o mesmo código de uso único que este processo acabou de sortear,
+ * e a assinatura HMAC-SHA256 com a credencial desta sessão. Resposta de outro
+ * pedido, repetida ou sem assinatura não aprova nada.
+ */
+function allowIsBound(answer, credential, requestHash, nonce) {
+  const b = answer?.binding;
+  if (!b || typeof b !== "object") return false;
+  if (b.request_hash !== requestHash || b.nonce !== nonce || typeof b.mac !== "string") return false;
+  const esperado = createHmac("sha256", credential)
+    .update(`${APPROVAL_BINDING_VERSION}\n${requestHash}\n${nonce}\nallow`)
+    .digest();
+  const recebido = /^[0-9a-f]{64}$/.test(b.mac) ? Buffer.from(b.mac, "hex") : null;
+  return Boolean(recebido) && recebido.length === esperado.length && timingSafeEqual(recebido, esperado);
+}
+
+/**
  * ARROW-430 — o agente pediu permissão para uma ferramenta, e a janela vai
  * perguntar à pessoa. Antes, o cano pergunta ao cockpit se ela decidiu por lá.
  *
+ * O QUE ESTE GANCHO GARANTE (ARROW-470), para quem revisa:
+ *   · ele nunca aprova sozinho: só repassa a decisão que a pessoa tomou no
+ *     cockpit dela, autenticada;
+ *   · a aprovação vale só para este pedido exato — impressão do comando,
+ *     código de uso único e assinatura são conferidos aqui, na máquina;
+ *   · sem decisão, com o cockpit desligado, com o servidor fora do ar ou com
+ *     qualquer coisa que não confira, não imprime nada e a janela pergunta como
+ *     sempre;
+ *   · negar pelo cockpit também passa por aqui (negar nunca amplia permissão).
+ *
  * Quem decide se vale esperar, e por quanto, é o servidor: só com o cockpit
  * aberto há pouco, e no máximo 20 s. O cano só traduz a decisão para o formato
- * do cliente. Sem decisão — ou qualquer falha — não imprime nada, e a janela
- * pergunta como sempre.
+ * do cliente.
  *
  * Só Claude Code e Codex. No Cursor o `allow` não dispensa a pergunta local
  * (ARROW-422), e nenhum gancho dele chama este modo.
@@ -720,9 +775,13 @@ async function cockpitPermission(event) {
   if (!state.cockpit?.enabled && !loadCockpitNote()?.enabled) return;
   const nome = typeof event.tool_name === "string" ? event.tool_name : "";
   if (!nome) return;
+  const requestHash = permissionFingerprint(event);
+  const nonce = randomBytes(16).toString("hex");
   const { answer } = await askCockpit(
     {
       mode: "approval",
+      request_hash: requestHash,
+      nonce,
       session_key: String(event.session_id || ""),
       harness,
       tool_name: nome,
@@ -736,6 +795,7 @@ async function cockpitPermission(event) {
   );
   if (!answer?.enabled) return;
   if (answer.decision === "allow") {
+    if (!allowIsBound(answer, credential, requestHash, nonce)) return;
     print({ hookSpecificOutput: { hookEventName: "PermissionRequest", decision: { behavior: "allow" } } });
   } else if (answer.decision === "deny") {
     // O motivo é o texto do servidor, como em toda recusa do cano.

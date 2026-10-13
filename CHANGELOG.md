@@ -6,6 +6,14 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.51
+
+- **An approval from the cockpit is valid for that one request only.** The permission hook now fingerprints the exact request on your machine and accepts an "allow" only when it comes back bound to that fingerprint and to a single-use code, signed with the session's credential. Anything else approves nothing, and the window asks as usual. The README now says what the permission hook does and does not do.
+
+### 0.1.50
+
+- **Cowork sessions in the cockpit.** The plugin now tells Cowork apart from Claude Code, so your Cowork sessions show up in the cockpit with their own badge, including the ones that already ended, with a link to continue in Cowork.
+
 ### 0.1.49
 
 - **Easier to find in plugin directories.** The README now has Usage and Examples sections, and the marketplace entry declares its category (productivity). Nothing changes in how the plugin works.
@@ -24,6 +32,14 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.51
+
+- **Una aprobación desde el cockpit vale solo para ese pedido.** El hook de permiso ahora calcula en tu máquina la huella del pedido exacto y acepta un "allow" solo si vuelve atado a esa huella y a un código de un solo uso, firmado con la credencial de la sesión. Cualquier otra cosa no aprueba nada, y la ventana pregunta como siempre. El README ahora dice qué hace y qué no hace el hook de permiso.
+
+### 0.1.50
+
+- **Sesiones de Cowork en el cockpit.** El plugin ahora distingue Cowork de Claude Code, así que tus sesiones de Cowork aparecen en el cockpit con su propia insignia, también las que ya terminaron, con un enlace para continuar en Cowork.
+
 ### 0.1.49
 
 - **Más fácil de encontrar en los directorios de plugins.** El README ahora tiene las secciones Uso y Ejemplos, y la entrada del marketplace declara su categoría (productividad). Nada cambia en cómo funciona el plugin.
@@ -41,6 +57,14 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.51
+
+- **Uma aprovação pelo cockpit vale só para aquele pedido.** O gancho de permissão agora calcula na sua máquina a impressão do pedido exato e só aceita um "allow" que volte preso a essa impressão e a um código de uso único, assinado com a credencial da sessão. Qualquer outra coisa não aprova nada, e a janela pergunta como sempre. O README agora diz o que o gancho de permissão faz e o que não faz.
+
+### 0.1.50
+
+- **Sessões do Cowork no cockpit.** O plugin agora distingue o Cowork do Claude Code, e as suas sessões do Cowork aparecem no cockpit com selo próprio, inclusive as que já terminaram, com um link para continuar no Cowork.
 
 ### 0.1.49
 

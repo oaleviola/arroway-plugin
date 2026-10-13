@@ -89,6 +89,10 @@ Screens from a demo account with sample data.
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — the same package as Cursor reads it: its own manifest and hook format, Arroway's own address, no link to paste
 - `plugin/assets/` — icons and wordmarks
 
+## Permission requests
+
+The plugin's permission hook (Claude Code and Codex) exists only so you can answer, from your own Arroway cockpit, a permission request your agent made. It never approves anything on its own. An approval is valid for that one request only: the hook fingerprints the exact request on your machine and accepts an "allow" only when it comes back bound to that fingerprint and to a single-use code, signed with the session's credential. Without your answer — or with the cockpit off, the server unreachable, or anything that does not match — the window asks as usual. You can also deny from the cockpit, and every decision is recorded.
+
 ## This repository is a mirror
 
 It is generated. The source lives elsewhere and is published here automatically whenever it changes.
@@ -192,6 +196,10 @@ Pantallas de una cuenta de demostración con datos de ejemplo (la interfaz de la
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — el mismo paquete tal como lo lee Cursor: su propio manifiesto y su propio formato de hooks, la dirección de Arroway, ningún enlace que pegar
 - `plugin/assets/` — iconos y logotipos
 
+### Pedidos de permiso
+
+El hook de permiso del plugin (Claude Code y Codex) existe solo para que respondas, desde tu propio cockpit de Arroway, un pedido de permiso que hizo tu agente. Nunca aprueba nada por sí solo. Una aprobación vale solo para ese pedido: el hook calcula en tu máquina la huella del pedido exacto y acepta un "allow" solo si vuelve atado a esa huella y a un código de un solo uso, firmado con la credencial de la sesión. Sin tu respuesta — o con el cockpit apagado, el servidor inalcanzable o cualquier cosa que no coincida — la ventana pregunta como siempre. También puedes denegar desde el cockpit, y cada decisión queda registrada.
+
 ### Este repositorio es un espejo
 
 Es generado. La fuente vive en otro sitio y se publica aquí automáticamente cada vez que cambia.
@@ -294,6 +302,10 @@ Telas de uma conta de demonstração com dados de exemplo (a interface dos print
 - `plugin/.mcp.json` — a conexão do Claude Code, que usa o endereço da própria Arroway; a identidade vem de entrar
 - `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — o mesmo pacote como o Cursor o lê: manifesto e formato de hooks próprios, o endereço da própria Arroway, nenhum link para colar
 - `plugin/assets/` — ícones e logotipos
+
+### Pedidos de permissão
+
+O gancho de permissão do plugin (Claude Code e Codex) existe só para você responder, do seu próprio cockpit da Arroway, um pedido de permissão que o seu agente fez. Ele nunca aprova nada sozinho. Uma aprovação vale só para aquele pedido: o gancho calcula na sua máquina a impressão do pedido exato e só aceita um "allow" que volte preso a essa impressão e a um código de uso único, assinado com a credencial da sessão. Sem a sua resposta — ou com o cockpit desligado, o servidor fora do ar ou qualquer coisa que não confira — a janela pergunta como sempre. Você também pode negar pelo cockpit, e toda decisão fica registrada.
 
 ### Este repositório é um espelho
 
