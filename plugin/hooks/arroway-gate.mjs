@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.51";
+const PLUGIN_VERSION = "0.1.52";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -448,9 +448,17 @@ const COCKPIT_MODES = ["prompt", "response", "bell", "permission"];
  */
 function harnessOf(event) {
   if (typeof event?.cursor_version === "string") return "cursor";
-  if (typeof event?.turn_id === "string") return "codex";
+  // Codex only includes turn_id on turn-scoped events. SessionStart and
+  // SessionEnd have no turn_id, so use its plugin runtime markers there too.
+  // Check them before Claude's compatibility variables: Codex exports those
+  // as well, and may inherit CLAUDE_CODE_ENTRYPOINT from its parent process.
+  if (
+    typeof event?.turn_id === "string" ||
+    process.env.PLUGIN_ROOT ||
+    process.env.PLUGIN_DATA
+  ) return "codex";
   if (process.env.CLAUDE_CODE_ENTRYPOINT === "local-agent") return "cowork";
-  if (process.env.CLAUDE_CODE_ENTRYPOINT) return "claude-code";
+  if (process.env.CLAUDE_CODE_ENTRYPOINT || process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PLUGIN_DATA) return "claude-code";
   return "other";
 }
 

@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.52
+
+- **The cockpit names the right client in more cases.** Codex is now recognized at the start and end of a session too, not only when a turn ends, and Claude Code is recognized even when it does not set its client name. Before, those sessions could show up under the wrong client or none.
+
 ### 0.1.51
 
 - **An approval from the cockpit is valid for that one request only.** The permission hook now fingerprints the exact request on your machine and accepts an "allow" only when it comes back bound to that fingerprint and to a single-use code, signed with the session's credential. Anything else approves nothing, and the window asks as usual. The README now says what the permission hook does and does not do.
@@ -32,6 +36,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.52
+
+- **El cockpit identifica el cliente correcto en más casos.** Codex ahora se reconoce también al inicio y al final de la sesión, no solo cuando termina un turno, y Claude Code se reconoce aunque no indique el nombre del cliente. Antes, esas sesiones podían aparecer con el cliente equivocado o sin ninguno.
+
 ### 0.1.51
 
 - **Una aprobación desde el cockpit vale solo para ese pedido.** El hook de permiso ahora calcula en tu máquina la huella del pedido exacto y acepta un "allow" solo si vuelve atado a esa huella y a un código de un solo uso, firmado con la credencial de la sesión. Cualquier otra cosa no aprueba nada, y la ventana pregunta como siempre. El README ahora dice qué hace y qué no hace el hook de permiso.
@@ -57,6 +65,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.52
+
+- **O cockpit reconhece o cliente certo em mais casos.** O Codex agora é reconhecido também no início e no fim da sessão, não só quando um turno termina, e o Claude Code é reconhecido mesmo quando não informa o nome do cliente. Antes, essas sessões podiam aparecer com o cliente errado ou sem nenhum.
 
 ### 0.1.51
 
