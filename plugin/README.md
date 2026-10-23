@@ -137,11 +137,11 @@ After the first read delivered in a session, the server answers with the standin
 
 ## Checking text before publishing
 
-Before an act that publishes text for other people — opening or editing a pull request, commenting on an issue or a pull request, creating a release, a connector call that sends a message or posts a comment — the gate asks once for a check: `arroway_norms` with that text as `draft`, which returns in full what the team decided that the text touches. After the check, the act goes through; the next act of publishing asks for its own. `git push`, merge and deploy are delivery of code, not text for people, and are never asked.
+Before an act that publishes text for other people — opening or editing a pull request, commenting on an issue or a pull request, creating a release, a connector call that sends a message or posts a comment — the gate asks once for a check: `arroway_norms` with that text as `draft`, which returns in full what the team decided that the text touches. After the check, the acts of publishing in the same pass go through for a few minutes; after that, the next act asks for its own. `git push`, merge and deploy are delivery of code, not text for people, and are never asked.
 
 **What it is, and what it is not.** It is a check asked for *per act*, not a guarantee about the text. The server sees the shell command and the tool's name, but not the body of a `--body-file` or a connector's arguments — and the pipe does not send them. So what it can say is "a check happened before this act", never "this exact text was checked".
 
-**It never traps a session.** Retry the same act without checking and it goes through, with a visible note. That release holds only for the same act: being stopped on a pull request and then trying a comment asks again. Like the other gates, it only ever asks where the server can keep state for the session.
+**It never traps a session.** Retry the same act without checking and it goes through, with a visible note. That release holds only for the same act, and only for ten minutes: being stopped on a pull request and then trying a comment asks again. Like the other gates, it only ever asks where the server can keep state for the session.
 
 In Claude Code, set **"Ask for a text check before publishing"** to off in the plugin's configuration. In Codex CLI, start it with `ARROWAY_ENFORCE_CHECKING=false`. Installs before 0.1.46 are never asked: the skill and the reminder at the end of every read carry the same instruction, without the stop.
 
@@ -361,11 +361,11 @@ Después de la primera lectura entregada en una sesión, el servidor responde co
 
 ### Revisar el texto antes de publicar
 
-Antes de un acto que publica texto para otras personas — abrir o editar un pull request, comentar en un issue o un pull request, crear un release, una llamada de conector que manda un mensaje o publica un comentario — la compuerta pide una vez una revisión: `arroway_norms` con ese texto como `draft`, que devuelve completo lo que el equipo decidió y el texto toca. Después de la revisión, el acto pasa; el siguiente acto de publicar pide la suya. `git push`, merge y deploy son entrega de código, no texto para personas, y nunca se piden.
+Antes de un acto que publica texto para otras personas — abrir o editar un pull request, comentar en un issue o un pull request, crear un release, una llamada de conector que manda un mensaje o publica un comentario — la compuerta pide una vez una revisión: `arroway_norms` con ese texto como `draft`, que devuelve completo lo que el equipo decidió y el texto toca. Después de la revisión, los actos de publicar de la misma pasada pasan durante unos minutos; pasado ese tiempo, el siguiente acto pide la suya. `git push`, merge y deploy son entrega de código, no texto para personas, y nunca se piden.
 
 **Qué es, y qué no es.** Es una revisión pedida *por acto*, no una garantía sobre el texto. El servidor ve el comando de shell y el nombre de la herramienta, pero no el cuerpo de un `--body-file` ni los argumentos de un conector — y el conducto no los manda. Así que lo que puede decir es "hubo una revisión antes de este acto", nunca "este texto exacto fue revisado".
 
-**Nunca deja una sesión atascada.** Reintenta el mismo acto sin revisar y pasa, con una nota visible. Esa liberación vale solo para el mismo acto: frenado en un pull request, intentar después un comentario pide de nuevo. Como las otras compuertas, solo pide donde el servidor puede guardar estado para la sesión.
+**Nunca deja una sesión atascada.** Reintenta el mismo acto sin revisar y pasa, con una nota visible. Esa liberación vale solo para el mismo acto, y solo durante diez minutos: frenado en un pull request, intentar después un comentario pide de nuevo. Como las otras compuertas, solo pide donde el servidor puede guardar estado para la sesión.
 
 En Claude Code, pon **"Ask for a text check before publishing"** en off, en la configuración del plugin. En Codex CLI, arráncalo con `ARROWAY_ENFORCE_CHECKING=false`. Las instalaciones anteriores a la 0.1.46 nunca reciben el pedido: la skill y el recordatorio al final de cada lectura llevan la misma instrucción, sin el freno.
 
@@ -585,11 +585,11 @@ Depois da primeira leitura entregue numa sessão, o servidor responde com o bloc
 
 ### Conferir o texto antes de publicar
 
-Antes de um ato que publica texto para outras pessoas — abrir ou editar um pull request, comentar numa issue ou num pull request, criar um release, uma chamada de conector que manda mensagem ou publica comentário — o portão pede uma conferência, uma vez: `arroway_norms` com esse texto em `draft`, que devolve inteiro o que o time decidiu e o texto toca. Depois da conferência, o ato passa; o próximo ato de publicar pede a dele. `git push`, merge e deploy são entrega de código, não texto para pessoas, e nunca são cobrados.
+Antes de um ato que publica texto para outras pessoas — abrir ou editar um pull request, comentar numa issue ou num pull request, criar um release, uma chamada de conector que manda mensagem ou publica comentário — o portão pede uma conferência, uma vez: `arroway_norms` com esse texto em `draft`, que devolve inteiro o que o time decidiu e o texto toca. Depois da conferência, os atos de publicar da mesma passada passam por alguns minutos; passado esse tempo, o próximo ato pede a dele. `git push`, merge e deploy são entrega de código, não texto para pessoas, e nunca são cobrados.
 
 **O que é, e o que não é.** É uma conferência cobrada *por ato*, não uma garantia sobre o texto. O servidor vê o comando de shell e o nome da ferramenta, mas não o corpo de um `--body-file` nem os argumentos de um conector — e o cano não os manda. Então o que ele pode dizer é "houve uma conferência antes deste ato", nunca "este texto exato foi conferido".
 
-**Nunca prende a sessão.** Tente o mesmo ato de novo sem conferir e ele passa, com uma nota visível. Essa liberação vale só para o mesmo ato: barrado num pull request, tentar depois um comentário cobra de novo. Como os outros portões, ele só cobra onde o servidor consegue guardar estado da sessão.
+**Nunca prende a sessão.** Tente o mesmo ato de novo sem conferir e ele passa, com uma nota visível. Essa liberação vale só para o mesmo ato, e só por dez minutos: barrado num pull request, tentar depois um comentário cobra de novo. Como os outros portões, ele só cobra onde o servidor consegue guardar estado da sessão.
 
 No Claude Code, ponha **"Ask for a text check before publishing"** em off, na configuração do plugin. No Codex CLI, inicie-o com `ARROWAY_ENFORCE_CHECKING=false`. Instalações anteriores à 0.1.46 nunca são cobradas: a skill e o lembrete no fim de toda leitura levam a mesma instrução, sem a parada.
 

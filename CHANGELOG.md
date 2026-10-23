@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.53
+
+- **The publishing check keeps up with parallel calls.** When several acts of publishing arrive at the same time, the check no longer loses track of the ones it already asked about, so a repeated act goes through instead of being stopped again. The windows are in the README.
+
 ### 0.1.52
 
 - **The cockpit names the right client in more cases.** Codex is now recognized at the start and end of a session too, not only when a turn ends, and Claude Code is recognized even when it does not set its client name. Before, those sessions could show up under the wrong client or none.
@@ -36,6 +40,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.53
+
+- **La verificación de publicación aguanta llamadas en paralelo.** Cuando varios actos de publicar llegan al mismo tiempo, la verificación ya no pierde los que ya preguntó, así que un acto repetido pasa en lugar de detenerse otra vez. Las ventanas están en el README.
+
 ### 0.1.52
 
 - **El cockpit identifica el cliente correcto en más casos.** Codex ahora se reconoce también al inicio y al final de la sesión, no solo cuando termina un turno, y Claude Code se reconoce aunque no indique el nombre del cliente. Antes, esas sesiones podían aparecer con el cliente equivocado o sin ninguno.
@@ -65,6 +73,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.53
+
+- **A conferência de publicação aguenta chamadas em paralelo.** Quando vários atos de publicar chegam ao mesmo tempo, a conferência deixa de perder os que já cobrou, e um ato repetido passa em vez de ser barrado de novo. As janelas estão no README.
 
 ### 0.1.52
 
