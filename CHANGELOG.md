@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.54
+
+- **Moving a card is no longer treated as publishing.** For a connector's tools, the plugin now tells the server which fields a request carries (never their values), so a change of status, label or assignee goes through without a text check, and a comment on one card is not confused with a comment on another. The README says exactly what is sent.
+
 ### 0.1.53
 
 - **The publishing check keeps up with parallel calls.** When several acts of publishing arrive at the same time, the check no longer loses track of the ones it already asked about, so a repeated act goes through instead of being stopped again. The windows are in the README.
@@ -40,6 +44,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.54
+
+- **Mover una tarjeta ya no cuenta como publicar.** En las herramientas de un conector, el plugin ahora le dice al servidor qué campos lleva la petición (nunca sus valores), así que un cambio de estado, etiqueta o responsable pasa sin verificación de texto, y el comentario de una tarjeta no se confunde con el de otra. El README dice exactamente qué se envía.
+
 ### 0.1.53
 
 - **La verificación de publicación aguanta llamadas en paralelo.** Cuando varios actos de publicar llegan al mismo tiempo, la verificación ya no pierde los que ya preguntó, así que un acto repetido pasa en lugar de detenerse otra vez. Las ventanas están en el README.
@@ -73,6 +81,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.54
+
+- **Mover um card deixa de contar como publicar.** Nas ferramentas de um conector, o plugin passa a dizer ao servidor quais campos o pedido leva (nunca os valores), então mudar status, etiqueta ou responsável passa sem conferência de texto, e o comentário de um card não se confunde com o de outro. O README diz exatamente o que é enviado.
 
 ### 0.1.53
 

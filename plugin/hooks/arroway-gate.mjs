@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.53";
+const PLUGIN_VERSION = "0.1.54";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -278,7 +278,9 @@ function plainText(response) {
 /**
  * A carga, e ela é a lista COMPLETA do que sai desta máquina.
  *
- * Vai: o nome da ferramenta, o texto do comando de shell (e só dele), as versões
+ * Vai: o nome da ferramenta, o texto do comando de shell (e só dele), para
+ * ferramenta de conector os NOMES dos campos do pedido e uma impressão dele
+ * (nunca os valores; ARROW-484), as versões
  * do cano e do cliente, os três interruptores do portão, e — depois da
  * ferramenta — se a resposta voltou sem erro e com texto, e se ela trouxe o
  * trecho que o servidor pediu para procurar (ARROW-418: um sim ou não). No fim do turno vai a
@@ -298,6 +300,7 @@ function payload(wireEvent, event, credentialed, extra = {}) {
     session_key: credentialed ? String(event.session_id || "") : undefined,
     tool_name: String(event.tool_name || "") || undefined,
     command: typeof input.command === "string" ? input.command : null,
+    ...requestShape(event, input),
     response_ok: posTool ? !hasError(event.tool_response) : false,
     response_has_text: posTool ? hasText(event.tool_response) : false,
     enforce_reading: readingEnforcement(),
@@ -307,6 +310,20 @@ function payload(wireEvent, event, credentialed, extra = {}) {
     client: { name: process.env.CLAUDE_CODE_ENTRYPOINT || null, version: null },
     ...extra,
   };
+}
+
+/**
+ * ARROW-484 fatia 3 — o FORMATO do pedido de uma ferramenta de conector, e nada
+ * além dele: os NOMES dos campos presentes e uma impressão local do pedido
+ * (a mesma da aprovação amarrada, salgada com a sessão). Nunca os valores. Só
+ * para ferramenta de conector, que é onde o servidor não tem como distinguir um
+ * ato do outro pelo nome; arquivo e shell seguem como antes.
+ */
+function requestShape(event, input) {
+  if (!/^mcp__/.test(String(event.tool_name || ""))) return {};
+  const campos = Object.keys(input).filter((k) => /^[A-Za-z0-9_.-]{1,64}$/.test(k)).sort().slice(0, 40);
+  if (!campos.length) return {};
+  return { input_fields: campos, input_fingerprint: permissionFingerprint(event) };
 }
 
 /**
