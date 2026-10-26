@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.55
+
+- **In Cursor, the plugin's refusal no longer looks like a tool error.** When the hook stops the first file change of a session, Cursor now shows the reason to you and to the agent in its own message channels, and the session opening says in advance that this can happen once. The README explains it.
+
 ### 0.1.54
 
 - **Moving a card is no longer treated as publishing.** For a connector's tools, the plugin now tells the server which fields a request carries (never their values), so a change of status, label or assignee goes through without a text check, and a comment on one card is not confused with a comment on another. The README says exactly what is sent.
@@ -44,6 +48,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.55
+
+- **En Cursor, el rechazo del plugin ya no parece un error de la herramienta.** Cuando el gancho detiene el primer cambio de archivo de una sesión, Cursor ahora te muestra el motivo a ti y al agente en sus propios canales de mensaje, y la apertura de la sesión avisa de antemano que puede pasar una vez. El README lo explica.
+
 ### 0.1.54
 
 - **Mover una tarjeta ya no cuenta como publicar.** En las herramientas de un conector, el plugin ahora le dice al servidor qué campos lleva la petición (nunca sus valores), así que un cambio de estado, etiqueta o responsable pasa sin verificación de texto, y el comentario de una tarjeta no se confunde con el de otra. El README dice exactamente qué se envía.
@@ -81,6 +89,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.55
+
+- **No Cursor, a recusa do plugin deixa de parecer erro da ferramenta.** Quando o gancho barra a primeira mudança de arquivo da sessão, o Cursor passa a mostrar o motivo para você e para o agente nos canais de mensagem dele, e a abertura da sessão avisa de antemão que isso pode acontecer uma vez. O README explica.
 
 ### 0.1.54
 

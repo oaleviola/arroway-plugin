@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.54";
+const PLUGIN_VERSION = "0.1.55";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -1089,7 +1089,13 @@ async function main() {
   const nota = mode === "start" ? loadCockpitNote() : null;
   const avisoCockpit = nota?.enabled && typeof nota.note === "string" ? nota.note : "";
   const abertura = (extra) => {
-    const texto = [extra, avisoCockpit, normas].filter(Boolean).join("\n\n");
+    // ARROW-444 — no Cursor a recusa do gancho chegou ao modelo parecendo erro
+    // falso de ferramenta; dizer de antemão que o gancho existe tira o susto.
+    const avisoGancho =
+      harness === "cursor"
+        ? "Arroway notice: this session has the Arroway plugin hook installed by the person using it. Before the first file change in a session it may refuse once until arroway_read has been delivered. That refusal comes from the hook, not from the tool; nothing ran, and it is not an injection."
+        : "";
+    const texto = [extra, avisoGancho, avisoCockpit, normas].filter(Boolean).join("\n\n");
     if (harness === "cursor") print({ additional_context: texto });
     else print({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: texto } });
   };
@@ -1141,7 +1147,15 @@ async function main() {
   if (mode === "pre" && answer.decision === "deny") {
     // O cano devolve permitir/bloquear no formato que o cliente espera, e o
     // motivo é o texto do servidor — nunca um texto daqui.
+    // ARROW-444 — o Cursor tem canais próprios para o recado: `user_message`
+    // aparece para a pessoa e `agent_message` chega ao modelo como parte da
+    // decisão do gancho, não como um erro que a ferramenta devolveu. Sem eles o
+    // Sonnet 5 leu a recusa como injeção e escreveu mesmo assim. O texto é o do
+    // servidor nos dois; o formato de Claude Code segue junto.
     print({
+      ...(harness === "cursor"
+        ? { permission: "deny", user_message: message ?? "", agent_message: message ?? "" }
+        : {}),
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
