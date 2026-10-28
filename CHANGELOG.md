@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.56
+
+- **Cursor sessions now show up in the cockpit.** Cursor hands the result of a tool to the plugin in a different field than Claude Code, so the plugin never picked up the session credential that comes with the first read. Without it, a Cursor session was never reported to the cockpit and could not receive messages there. The plugin now reads the result in either form.
+
 ### 0.1.55
 
 - **In Cursor, the plugin's refusal no longer looks like a tool error.** When the hook stops the first file change of a session, Cursor now shows the reason to you and to the agent in its own message channels, and the session opening says in advance that this can happen once. The README explains it.
@@ -48,6 +52,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.56
+
+- **Las sesiones de Cursor ahora aparecen en el cockpit.** Cursor le entrega al plugin el resultado de una herramienta en un campo distinto al de Claude Code, así que el plugin nunca tomaba la credencial de sesión que llega con la primera lectura. Sin ella, una sesión de Cursor nunca se informaba al cockpit ni podía recibir mensajes desde allí. El plugin ahora lee el resultado en cualquiera de las dos formas.
+
 ### 0.1.55
 
 - **En Cursor, el rechazo del plugin ya no parece un error de la herramienta.** Cuando el gancho detiene el primer cambio de archivo de una sesión, Cursor ahora te muestra el motivo a ti y al agente en sus propios canales de mensaje, y la apertura de la sesión avisa de antemano que puede pasar una vez. El README lo explica.
@@ -89,6 +97,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.56
+
+- **As sessões do Cursor passam a aparecer no cockpit.** O Cursor entrega ao plugin o resultado de uma ferramenta num campo diferente do Claude Code, então o plugin nunca pegava a credencial de sessão que vem com a primeira leitura. Sem ela, uma sessão do Cursor nunca era relatada ao cockpit nem podia receber mensagens por lá. O plugin agora lê o resultado nas duas formas.
 
 ### 0.1.55
 

@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.55";
+const PLUGIN_VERSION = "0.1.56";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -264,6 +264,25 @@ function capabilityFromResponse(response) {
   }
 }
 
+/**
+ * A resposta da ferramenta, como cada cliente a entrega.
+ *
+ * O Claude Code e o Codex mandam `tool_response` como objeto. O Cursor manda
+ * `tool_output`: uma string com o JSON do resultado do MCP. Lido só o primeiro
+ * campo, no Cursor a etiqueta da leitura nunca era colhida — a sessão ficava
+ * sem credencial, e a parada nunca chegava ao cockpit.
+ */
+function toolResponse(event) {
+  if (event?.tool_response != null) return event.tool_response;
+  const saida = event?.tool_output;
+  if (typeof saida !== "string") return saida ?? null;
+  try {
+    return JSON.parse(saida);
+  } catch {
+    return saida;
+  }
+}
+
 function plainText(response) {
   if (response == null) return "";
   if (typeof response === "string") return response;
@@ -301,8 +320,8 @@ function payload(wireEvent, event, credentialed, extra = {}) {
     tool_name: String(event.tool_name || "") || undefined,
     command: typeof input.command === "string" ? input.command : null,
     ...requestShape(event, input),
-    response_ok: posTool ? !hasError(event.tool_response) : false,
-    response_has_text: posTool ? hasText(event.tool_response) : false,
+    response_ok: posTool ? !hasError(toolResponse(event)) : false,
+    response_has_text: posTool ? hasText(toolResponse(event)) : false,
     enforce_reading: readingEnforcement(),
     enforce_closing: closingEnforcement(),
     enforce_checking: checkingEnforcement(),
@@ -615,7 +634,7 @@ function responseMatches(state, event) {
     (regra) => casa(regra?.tool, nome) && typeof regra?.response === "string" && regra.response
   );
   if (!regras.length) return false;
-  const texto = plainText(event.tool_response);
+  const texto = plainText(toolResponse(event));
   return regras.some((regra) => texto.includes(regra.response));
 }
 
@@ -1104,7 +1123,7 @@ async function main() {
   // perguntar: é o que faz a mesma requisição já sair autenticada.
   let capability = typeof state.capability === "string" ? state.capability : null;
   if (mode === "post") {
-    const colhida = capabilityFromResponse(event.tool_response);
+    const colhida = capabilityFromResponse(toolResponse(event));
     if (colhida && colhida !== capability) {
       capability = colhida;
       saveState(event.session_id, { ...state, capability });
