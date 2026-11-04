@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.58
+
+- **In Cursor, the first-write refusal now carries a reference the session already knows.** Cursor gives the refusal to the agent as a tool error, with its own line telling the agent not to work around it, and a Claude model read that as an injection and wrote anyway. The session opening now describes that framing in advance and announces a reference for the session, and the refusal opens with the same reference. The server's text is unchanged, and nothing changes outside Cursor.
+
 ### 0.1.57
 
 - **Codex can be woken from the cockpit by a helper on the Mac.** The plugin does not open a Codex turn by itself. `bin/arroway-codex-bell.mjs`, running on the person's machine, asks the cockpit bell and runs `codex queue` when a message is waiting. The same thread is not woken twice within 90 seconds. Cursor still waits for its next stop.
@@ -56,6 +60,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.58
+
+- **En Cursor, el rechazo de la primera escritura ahora lleva una referencia que la sesión ya conoce.** Cursor le entrega el rechazo al agente como un error de herramienta, con una línea propia que le pide no buscar atajos, y un modelo Claude lo leyó como una inyección y escribió igual. La apertura de la sesión ahora describe ese formato de antemano y anuncia una referencia de la sesión, y el rechazo abre con la misma referencia. El texto del servidor no cambia, y fuera de Cursor nada cambia.
+
 ### 0.1.57
 
 - **Codex puede despertarse desde el cockpit con un ayudante en el Mac.** El plugin no abre un turno de Codex por su cuenta. `bin/arroway-codex-bell.mjs`, en la máquina de la persona, hace la pregunta de la campana y ejecuta `codex queue` cuando hay un mensaje esperando. El mismo hilo no se despierta dos veces en 90 segundos. Cursor sigue esperando su próxima parada.
@@ -105,6 +113,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.58
+
+- **No Cursor, a recusa da primeira escrita agora leva uma referência que a sessão já conhece.** O Cursor entrega a recusa ao agente como erro de ferramenta, com uma linha própria pedindo que ele não a contorne, e um modelo Claude leu isso como injeção e escreveu mesmo assim. A abertura da sessão agora descreve esse formato de antemão e anuncia uma referência da sessão, e a recusa abre com a mesma referência. O texto do servidor não muda, e fora do Cursor nada muda.
 
 ### 0.1.57
 

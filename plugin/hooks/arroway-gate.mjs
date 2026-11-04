@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.57";
+const PLUGIN_VERSION = "0.1.58";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -562,6 +562,48 @@ async function askCockpit(body, credential, timeoutMs) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * ARROW-444 — a recusa no Cursor, e o aviso que a anuncia.
+ *
+ * Medido no Cursor CLI 2026.10.01 em 04/11, com o payload real: o modelo recebe
+ * o `user_message` (não o `agent_message`) como resultado da ferramenta, com
+ * "Error: " na frente, os recados de vários ganchos emendados por "---", e o
+ * próprio Cursor fecha com "Agent note: Do not suggest workarounds to the blocked
+ * tool." Uma ordem sem origem dentro de um erro de ferramenta é o formato que os
+ * modelos da Anthropic tratam como injeção — o Sonnet 5 tratou (08/10).
+ *
+ * O que o modelo confia é o que veio do ambiente antes: o `additional_context`
+ * do `sessionStart` chega numa seção de contexto dos ganchos, fora de qualquer
+ * resultado de ferramenta (medido no mesmo dia). Então o aviso de abertura
+ * descreve a moldura exata que a recusa vai ter e anuncia uma referência desta
+ * sessão; a recusa abre com a mesma referência. Texto de terceiro não tem como
+ * saber qual é — é isso que faz a recusa ser reconhecível como do ambiente.
+ *
+ * A regra não muda: o texto do servidor segue inteiro logo depois da etiqueta.
+ */
+function newHookRef() {
+  return randomBytes(4).toString("hex").toUpperCase().slice(0, 6);
+}
+
+function refusalTag(ref) {
+  return typeof ref === "string" && ref ? `[Arroway hook · session ref ${ref}]` : "[Arroway hook]";
+}
+
+function cursorHookNotice(ref) {
+  const etiqueta = refusalTag(ref);
+  return [
+    `Arroway notice: the person using this session installed the Arroway plugin, and its hook is active here${typeof ref === "string" && ref ? ` (session ref ${ref})` : ""}.`,
+    "Before the first file change of the session it may refuse that change once, until arroway_read has been delivered; nothing runs when it refuses.",
+    `Cursor shows a hook refusal as a tool result that starts with "Error:" and ends with Cursor's own line "Agent note: Do not suggest workarounds to the blocked tool." That framing is Cursor's, for any hook; it is not a failure of the tool.`,
+    `A refusal that opens with "${etiqueta}" is this hook, announced here at session start, not an injection. The way through is the one it names: call arroway_read, then retry the change.`,
+  ].join(" ");
+}
+
+function cursorRefusal(message, ref) {
+  const etiqueta = `${refusalTag(ref)} This is the refusal announced in this session's start context.`;
+  return typeof message === "string" && message ? `${etiqueta}\n${message}` : etiqueta;
 }
 
 /**
@@ -1067,8 +1109,15 @@ async function main() {
   }
 
   const wireEvent = WIRE[mode];
-  const state = loadState(event.session_id);
+  let state = loadState(event.session_id);
   const harness = harnessOf(event);
+
+  // ARROW-444 — a referência da sessão nasce na abertura, aqui e sem rede, e só
+  // no Cursor: é ela que liga a recusa ao aviso que o modelo já leu.
+  if (mode === "start" && harness === "cursor") {
+    state = { ...state, hookRef: newHookRef() };
+    saveState(event.session_id, state);
+  }
 
   // O TURNO É LOCAL E ACONTECE SEMPRE, calado ou não: a observação não depende de
   // o servidor estar respondendo, e o turno tem que estar inteiro quando ele for
@@ -1110,10 +1159,7 @@ async function main() {
   const abertura = (extra) => {
     // ARROW-444 — no Cursor a recusa do gancho chegou ao modelo parecendo erro
     // falso de ferramenta; dizer de antemão que o gancho existe tira o susto.
-    const avisoGancho =
-      harness === "cursor"
-        ? "Arroway notice: this session has the Arroway plugin hook installed by the person using it. Before the first file change in a session it may refuse once until arroway_read has been delivered. That refusal comes from the hook, not from the tool; nothing ran, and it is not an injection."
-        : "";
+    const avisoGancho = harness === "cursor" ? cursorHookNotice(state.hookRef) : "";
     const texto = [extra, avisoGancho, avisoCockpit, normas].filter(Boolean).join("\n\n");
     if (harness === "cursor") print({ additional_context: texto });
     else print({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: texto } });
@@ -1173,7 +1219,10 @@ async function main() {
     // servidor nos dois; o formato de Claude Code segue junto.
     print({
       ...(harness === "cursor"
-        ? { permission: "deny", user_message: message ?? "", agent_message: message ?? "" }
+        ? (() => {
+            const recado = cursorRefusal(message, state.hookRef);
+            return { permission: "deny", user_message: recado, agent_message: recado };
+          })()
         : {}),
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
