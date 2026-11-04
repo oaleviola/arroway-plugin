@@ -80,7 +80,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.56";
+const PLUGIN_VERSION = "0.1.57";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.

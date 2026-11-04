@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.57
+
+- **Codex can be woken from the cockpit by a helper on the Mac.** The plugin does not open a Codex turn by itself. `bin/arroway-codex-bell.mjs`, running on the person's machine, asks the cockpit bell and runs `codex queue` when a message is waiting. The same thread is not woken twice within 90 seconds. Cursor still waits for its next stop.
+
 ### 0.1.56
 
 - **Cursor sessions now show up in the cockpit.** Cursor hands the result of a tool to the plugin in a different field than Claude Code, so the plugin never picked up the session credential that comes with the first read. Without it, a Cursor session was never reported to the cockpit and could not receive messages there. The plugin now reads the result in either form.
@@ -52,6 +56,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.57
+
+- **Codex puede despertarse desde el cockpit con un ayudante en el Mac.** El plugin no abre un turno de Codex por su cuenta. `bin/arroway-codex-bell.mjs`, en la máquina de la persona, hace la pregunta de la campana y ejecuta `codex queue` cuando hay un mensaje esperando. El mismo hilo no se despierta dos veces en 90 segundos. Cursor sigue esperando su próxima parada.
+
 ### 0.1.56
 
 - **Las sesiones de Cursor ahora aparecen en el cockpit.** Cursor le entrega al plugin el resultado de una herramienta en un campo distinto al de Claude Code, así que el plugin nunca tomaba la credencial de sesión que llega con la primera lectura. Sin ella, una sesión de Cursor nunca se informaba al cockpit ni podía recibir mensajes desde allí. El plugin ahora lee el resultado en cualquiera de las dos formas.
@@ -97,6 +105,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.57
+
+- **O Codex pode ser acordado a partir do cockpit por um ajudante no Mac.** O plugin não abre um turno do Codex sozinho. `bin/arroway-codex-bell.mjs`, na máquina da pessoa, faz a pergunta da campainha e roda `codex queue` quando há uma mensagem esperando. A mesma thread não é acordada duas vezes em 90 segundos. O Cursor continua esperando a próxima parada.
 
 ### 0.1.56
 

@@ -5,14 +5,28 @@
 # etiqueta anotada `vX.Y.Z` — igual ao `version` do plugin.json — com as notas da
 # versão na mensagem. Este workflow transforma a etiqueta em Release com o token
 # do próprio espelho: nenhum segredo de um repositório entra no outro.
+#
+# ARROW-478 — cada execução confere TODAS as etiquetas, não só a que disparou:
+# cria a Release que falta e reescreve o corpo que diverge da etiqueta. Assim a
+# Release que nasceu errada (a v0.1.49 saiu com a mensagem do commit) se conserta
+# sozinha no próximo push de etiqueta, e Release de versão antiga etiquetada
+# depois não toma o lugar de "Latest", que é sempre da maior versão.
 name: Release
 
 on:
   push:
     tags: ["v*"]
+  # Para rodar a conferência sem esperar a próxima versão.
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+# Duas etiquetas empurradas em seguida disparam duas execuções; em fila, a
+# segunda acha a Release que a primeira criou e não tenta criá-la de novo.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -22,19 +36,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Criar a Release da etiqueta, se ainda não existir
+      - name: Criar a Release de cada etiqueta, e acertar o corpo que diverge
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
         run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "a Release $TAG já existe"
-            exit 0
-          fi
           # No push de etiqueta, o actions/checkout troca a etiqueta anotada por uma
           # leve no clone, e aí %(contents) devolve a mensagem do commit (foi o que
-          # saiu na v0.1.49). Trazer a anotada de volta antes de ler as notas.
-          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
-          git tag -l --format='%(contents)' "$TAG" > notes.md
-          [ -s notes.md ] || echo "Arroway plugin ${TAG#v}." > notes.md
-          gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag --latest
+          # saiu na v0.1.49). Trazer as anotadas de volta antes de ler as notas.
+          git fetch --force --tags origin
+          maior=$(git tag -l 'v*' | sort -V | tail -n1)
+          for TAG in $(git tag -l 'v*' | sort -V); do
+            git tag -l --format='%(contents)' "$TAG" > notes.md
+            [ -s notes.md ] || echo "Arroway plugin ${TAG#v}." > notes.md
+            if [ "$TAG" = "$maior" ]; then latest=true; else latest=false; fi
+            if ! gh release view "$TAG" >/dev/null 2>&1; then
+              gh release create "$TAG" --title "$TAG" --notes-file notes.md --verify-tag --latest="$latest"
+              echo "criada a Release $TAG"
+              continue
+            fi
+            corpo=$(gh release view "$TAG" --json body --jq .body)
+            if [ "$(printf '%s' "$corpo" | tr -d '\r')" != "$(tr -d '\r' < notes.md)" ]; then
+              gh release edit "$TAG" --notes-file notes.md
+              echo "corpo da Release $TAG acertado pela etiqueta"
+            fi
+          done
+          # Etiqueta antiga empurrada depois (a 0.1.50, em 41dd680) dispara o
+          # release.yml que mora NAQUELE commit, e o de antes marcava toda Release
+          # nova como "Latest". Reafirmar aqui devolve o posto à maior versão.
+          gh release edit "$maior" --latest
