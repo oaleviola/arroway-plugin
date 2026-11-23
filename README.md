@@ -2,7 +2,7 @@
 
 [Arroway](https://www.arroway.app) orchestrates people and AI agents around the decisions in force.
 
-**English** · [Español](#español) · [Português](#português)
+**English** · [Español](#español) · [Português](#português) · [Français](#français)
 
 Your team writes down what it decided; every teammate's AI reads it before it acts, and leaves behind what someone arriving later would need in order not to redo the work.
 
@@ -109,7 +109,7 @@ Found a problem, or want to suggest something? [www.arroway.app/support](https:/
 
 ## Español
 
-[English](#arroway--plugin) · **Español** · [Português](#português)
+[English](#arroway--plugin) · **Español** · [Português](#português) · [Français](#français)
 
 [Arroway](https://www.arroway.app/es) coordina a personas y agentes de IA en torno a las decisiones vigentes. Tu equipo anota lo que decidió; la IA de cada persona lo lee antes de actuar, y deja atrás lo que alguien que llegue después necesitaría para no rehacer el trabajo.
 
@@ -216,7 +216,7 @@ Es generado. La fuente vive en otro sitio y se publica aquí automáticamente ca
 
 ## Português
 
-[English](#arroway--plugin) · [Español](#español) · **Português**
+[English](#arroway--plugin) · [Español](#español) · **Português** · [Français](#français)
 
 A [Arroway](https://www.arroway.app/pt-BR) coordena pessoas e agentes de IA em torno das decisões que estão valendo. Seu time anota o que decidiu; a IA de cada pessoa lê isso antes de agir, e deixa para trás o que alguém que chegar depois precisaria para não refazer o trabalho.
 
@@ -318,3 +318,111 @@ Encontrou um problema, ou quer sugerir alguma coisa? [www.arroway.app/pt-BR/supp
 ### Links
 
 [Arroway](https://www.arroway.app/pt-BR) · [Como funciona](https://www.arroway.app/pt-BR/how-it-works) · [Privacidade](https://www.arroway.app/pt-BR/privacy) · [Termos](https://www.arroway.app/pt-BR/terms) · [Mudanças por versão](CHANGELOG.md#português)
+
+
+---
+
+## Français
+
+[English](#arroway--plugin) · [Español](#español) · [Português](#português) · **Français**
+
+[Arroway](https://www.arroway.app/fr) orchestre les personnes et les agents IA autour des décisions en vigueur. Votre équipe note ce qu’elle a décidé ; l’IA de chaque personne le lit avant d’agir, et laisse derrière elle ce dont quelqu’un qui arrive après aurait besoin pour ne pas refaire le travail.
+
+Ce dépôt est le plugin : la connexion à Arroway, le protocole de travail, et les hooks qui font qu’un assistant lit avant de rien modifier et consigne quand il termine.
+
+### Installation
+
+#### Claude Code et Cowork
+
+```
+claude plugin marketplace add oaleviola/arroway-plugin
+```
+
+```
+claude plugin install arroway@arroway
+```
+
+Rien à coller, et aucun connecteur séparé à installer : le paquet porte déjà la connexion vers l’adresse d’Arroway. Il démarre déconnecté, alors connectez-vous une seule fois. Dans Claude Code, lancez `/mcp`, choisissez `plugin:arroway:arroway` et suivez la connexion dans le navigateur. Approuvez la connexion en votre propre nom, et la mémoire que votre assistant écrira dès lors porte votre nom. Tant que vous ne vous êtes pas connecté·e, les outils d’Arroway n’apparaissent pas et rien n’est lu ni consigné. Si Arroway est déjà connectée à votre compte Claude comme connecteur et que ses outils apparaissent déjà, vous pouvez sauter cette étape.
+
+#### Cursor
+
+Ajoutez `https://github.com/oaleviola/arroway-plugin` comme marketplace de plugins dans Cursor, puis installez **arroway** depuis la liste des plugins.
+
+Ici non plus, rien à coller : le paquet de Cursor porte l’adresse d’Arroway et vous fait passer par le navigateur la première fois qu’il a besoin de vous. Approuvez la connexion en votre propre nom, et la mémoire que votre assistant écrira dès lors porte votre nom.
+
+#### Claude dans le navigateur ou sur mobile
+
+Vous n’avez pas besoin de ce dépôt : ajoutez Arroway comme connecteur, depuis la même page Connexions.
+
+#### La skill seule, dans tout agent qui lit des skills
+
+Si votre agent lit des skills mais qu’il n’existe pas de plugin Arroway pour lui, ajoutez la skill de travail avec la CLI [skills](https://skills.sh) :
+
+```
+npx skills add oaleviola/arroway-plugin
+```
+
+La skill apprend à votre agent à lire Arroway avant d’agir et à clore chaque tâche. Elle exige toujours qu’Arroway soit connectée comme serveur MCP à l’adresse `https://www.arroway.app/api/mcp`. Là où votre client a le plugin, utilisez le plugin : il apporte aussi la connexion et les hooks.
+
+#### Si c’est un agent IA qui installe
+
+Indiquez-lui [llms-install.md](llms-install.md) : les étapes de chaque client, écrites pour un agent, Cline et tout autre client MCP compris.
+
+### Utilisation
+
+Une fois connecté·e, il n’y a rien à appeler à la main : la skill dit à votre assistant quand utiliser Arroway. Cela se produit à quatre moments, et voici à quoi chacun ressemble.
+
+#### Exemples
+
+1. **Avant d’agir.** Vous demandez : *« Rédigez la page de tarifs du nouveau forfait. »* L’assistant appelle d’abord `arroway_read` pour votre projet et répond à partir de ce que l’équipe a déjà décidé. Si deux décisions se contredisent, il vous le dit au lieu d’en choisir une.
+2. **Avant d’affirmer quelque chose.** `arroway_norms` renvoie ce qui est déjà décidé, pour une fraction du coût d’une lecture complète, juste avant que l’assistant vous dise quelque chose ou propose une direction.
+3. **En terminant.** `arroway_log` consigne ce dont quelqu’un qui arrive après aurait besoin pour ne pas refaire le travail. Si rien de durable n’est sorti de la tâche, l’assistant le dit en une phrase : *No durable residue.*
+4. **En s’arrêtant sans avoir fini.** `arroway_pass` laisse l’état du travail, l’unique étape suivante, ce qu’il ne faut pas refaire et le risque qui reste ouvert. L’assistant de la personne suivante le trouve en tête de sa première lecture et le prend avec `arroway_claim`.
+
+Vous pouvez aussi demander ces choses directement :
+
+- *« Mettez-moi à jour sur ce qui s’est passé cette semaine dans mes projets. »* — `arroway_catch_up`
+- *« Où avons-nous parlé du changement de prix ? »* — `arroway_search_log`
+- *« Retenez que nous ne faisons pas de remise sur les forfaits annuels. »* — `arroway_remember`. Ce que vous affirmez vous-même est consigné comme votre décision ; ce qu’un assistant propose de sa propre initiative attend qu’une personne l’approuve.
+
+Un exemple court : un assistant étudie un changement de prix et consigne une proposition. Une personne approuve la décision. Un autre assistant rédige la page de tarifs à partir de cette décision, et la personne suivante peut voir ce qui a été décidé, qui l’a approuvé et ce qui reste ouvert.
+
+#### À quoi cela ressemble
+
+Écrans d’un compte de démonstration avec des données d’exemple (l’interface des captures est en anglais).
+
+**Ce qui vous attend, entre les projets.** Les décisions qu’un assistant a proposées attendent au même endroit qu’une personne tranche.
+
+![L’écran d’accueil d’Arroway : deux décisions attendent la personne, avec la liste des projets, l’activité récente et les IA connectées](screenshots/01-decisions-wait-for-you.png)
+
+**Dans un projet.** Les propositions d’un assistant attendent d’être approuvées (approuver, approuver et épingler, rejeter ou corriger), et les règles que l’équipe a épinglées sont ce que tout assistant connecté lit en premier.
+
+![Un projet Arroway : deux propositions en attente de décision et trois règles épinglées sur les mouvements d’argent](screenshots/02-project-proposals-and-rules.png)
+
+**Vos règles permanentes.** Votre façon de travailler vous suit dans chaque projet, et personne d’autre ne la voit.
+
+![Un espace personnel dans Arroway avec deux mémoires épinglées : une préférence pour les réponses courtes et une règle qui demande de donner le chiffre avant la recommandation](screenshots/03-personal-standing-rules.png)
+
+### Ce qu’il y a ici
+
+- `plugin/skills/` — le protocole de travail : lire avant d’agir, consigner quand une tâche se termine, passer le relais quand on s’arrête
+- `plugin/hooks/` — les verrous qui exigent ces deux moments au lieu de seulement les décrire, et une relecture du texte avant de publier quelque chose pour d’autres personnes
+- `plugin/.mcp.json` — la connexion de Claude Code, qui utilise l’adresse d’Arroway ; l’identité vient de la connexion
+- `plugin/.cursor-plugin/`, `plugin/cursor-mcp.json`, `plugin/hooks/cursor-hooks.json` — le même paquet tel que Cursor le lit : son propre manifeste et son propre format de hooks, l’adresse d’Arroway, aucun lien à coller
+- `plugin/assets/` — icônes et logotypes
+
+### Demandes d’autorisation
+
+Le hook d’autorisation du plugin (Claude Code et Codex) n’existe que pour que vous répondiez, depuis votre propre cockpit Arroway, à une demande d’autorisation faite par votre agent. Il n’approuve jamais rien de lui-même. Une approbation ne vaut que pour cette demande : le hook calcule sur votre machine l’empreinte de la demande exacte et n’accepte un « allow » que s’il revient lié à cette empreinte et à un code à usage unique, signé avec les identifiants de la session. Sans votre réponse — ou si le cockpit est éteint, le serveur injoignable ou que quoi que ce soit ne correspond pas — la fenêtre demande comme d’habitude. Vous pouvez aussi refuser depuis le cockpit, et chaque décision est consignée.
+
+### Ce dépôt est un miroir
+
+Il est généré. La source se trouve ailleurs et est publiée ici automatiquement chaque fois qu’elle change.
+
+**Merci de ne pas ouvrir de pull requests ni de modifier des fichiers ici** — les changements faits dans ce dépôt sont écrasés à la publication suivante, et un correctif qui atterrit ici n’atteint jamais le produit. Deux modifications, dont l’une perdue en silence, c’est exactement l’échec que cette note existe pour éviter.
+
+Vous avez trouvé un problème, ou vous voulez suggérer quelque chose ? [www.arroway.app/fr/support](https://www.arroway.app/fr/support). Pour un problème de sécurité, voyez [SECURITY.md](SECURITY.md). La façon d’aider est dans [CONTRIBUTING.md](CONTRIBUTING.md), et toutes les personnes ici suivent le [code de conduite](CODE_OF_CONDUCT.md).
+
+### Liens
+
+[Arroway](https://www.arroway.app/fr) · [Comment ça marche](https://www.arroway.app/fr/how-it-works) · [Confidentialité](https://www.arroway.app/fr/privacy) · [Conditions](https://www.arroway.app/fr/terms) · [Changements par version](CHANGELOG.md)
