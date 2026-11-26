@@ -6,6 +6,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## English
 
+### 0.1.59
+
+- **When Arroway's gate does not answer, the plugin now says so, once per session.** Before, a server that was down or refusing let the tool run with no word that the check "read before you write" had not happened. Now the first tool that runs without that check shows one line saying so, and that the check stays off for the rest of the session if the failure keeps up. Nothing is blocked: refusing every tool whenever the server hiccups would lock the session, so the plugin warns instead.
+
 ### 0.1.58
 
 - **In Cursor, the first-write refusal now carries a reference the session already knows.** Cursor gives the refusal to the agent as a tool error, with its own line telling the agent not to work around it, and a Claude model read that as an injection and wrote anyway. The session opening now describes that framing in advance and announces a reference for the session, and the refusal opens with the same reference. The server's text is unchanged, and nothing changes outside Cursor.
@@ -60,6 +64,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 
 ## Español
 
+### 0.1.59
+
+- **Cuando la puerta de Arroway no responde, el plugin ahora lo dice, una vez por sesión.** Antes, un servidor caído o que rechazaba dejaba correr la herramienta sin avisar que la verificación "leer antes de escribir" no había ocurrido. Ahora la primera herramienta que corre sin esa verificación muestra una línea que lo dice, y que la verificación sigue apagada el resto de la sesión si la falla continúa. No se bloquea nada: rechazar toda herramienta cada vez que el servidor falle trabaría la sesión, así que el plugin avisa.
+
 ### 0.1.58
 
 - **En Cursor, el rechazo de la primera escritura ahora lleva una referencia que la sesión ya conoce.** Cursor le entrega el rechazo al agente como un error de herramienta, con una línea propia que le pide no buscar atajos, y un modelo Claude lo leyó como una inyección y escribió igual. La apertura de la sesión ahora describe ese formato de antemano y anuncia una referencia de la sesión, y el rechazo abre con la misma referencia. El texto del servidor no cambia, y fuera de Cursor nada cambia.
@@ -113,6 +121,10 @@ What changed in each version of the Arroway plugin. Every version is also a [rel
 - **Revisar el texto antes de publicar.** Antes de un acto que publica texto para otras personas — un pull request, un comentario, una release, un mensaje —, el plugin pide una vez una revisión contra lo que decidió tu equipo. Repetir el mismo acto sin revisar pasa con un aviso. Se puede desactivar en la configuración del plugin.
 
 ## Português
+
+### 0.1.59
+
+- **Quando o portão da Arroway não responde, o plugin agora avisa, uma vez por sessão.** Antes, servidor fora do ar ou recusando deixava a ferramenta rodar sem dizer que a conferência "ler antes de escrever" não aconteceu. Agora a primeira ferramenta que roda sem essa conferência mostra uma linha dizendo isso, e que a conferência fica desligada no resto da sessão se a falha continuar. Nada é bloqueado: recusar toda ferramenta a cada oscilação do servidor trancaria a sessão, então o plugin avisa.
 
 ### 0.1.58
 

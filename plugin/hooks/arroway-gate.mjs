@@ -23,10 +23,18 @@
 // pertence ao servidor.
 //
 // FALHA ABERTA, SEMPRE. Rede fora, resposta inválida,
-// versão que não é a nossa, tempo esgotado: a ferramenta segue, o turno fecha e
-// nada é impresso. Não há cópia local das regras "para funcionar offline" —
-// duplicar julgamento no cliente recria exatamente o problema que este arquivo
-// existe para resolver.
+// versão que não é a nossa, tempo esgotado: a ferramenta segue e o turno fecha.
+// Não há cópia local das regras "para funcionar offline" — duplicar julgamento
+// no cliente recria exatamente o problema que este arquivo existe para resolver.
+//
+// A ÚNICA EXCEÇÃO À FRASE DO CLIENTE (ARROW-528): quando o portão NÃO RESPONDE
+// (rede fora, ou o servidor vivo recusando com status), a ferramenta segue, e
+// segue calada era o defeito — quem escreve ali não sabia que a conferência de
+// "ler antes de escrever" não aconteceu. Nesse caso, e só nele, o cano diz UMA
+// vez por sessão que a conferência não rodou. A frase mora aqui e não no
+// servidor por um motivo que não se contorna: o servidor é justamente quem não
+// respondeu. Recusar em vez de avisar foi descartado: trancaria todas as
+// ferramentas de quem usa o plugin a cada oscilação do servidor.
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -67,6 +75,17 @@ const TIMEOUT_MS = 1500;
 const NETWORK_FAILURES_BEFORE_QUIET = 3;
 
 /**
+ * ARROW-528 — o aviso de portão que não respondeu. Uma vez por sessão, só antes
+ * de uma ferramenta (é ali que algo passa sem conferência), e nunca em
+ * resposta de OUTRA versão do contrato: isso é versionamento combinado, não queda.
+ */
+const GATE_UNANSWERED_NOTICE =
+  "Arroway's gate did not answer, so this action ran WITHOUT the read-before-write check. If it keeps failing, the check stays off for the rest of this session. Treat what is written from here as unchecked, and call arroway_read for the project once the connection is back.";
+
+/** Marcado por `consultGate` quando o portão não deu resposta nenhuma; lido por `main` na mesma execução. */
+let gateUnanswered = false;
+
+/**
  * Teto de ferramentas guardadas por turno. Turno mais longo não perde o portão:
  * o servidor recebe o que coube, e o que ele decide com isso é dele.
  */
@@ -80,7 +99,7 @@ const MAX_TURN_OBSERVATIONS = 400;
  */
 const MAX_MESSAGE_TAIL = 1000;
 
-const PLUGIN_VERSION = "0.1.58";
+const PLUGIN_VERSION = "0.1.59";
 
 /**
  * O cockpit (ARROW-427): esperas próprias, separadas das do portão.
@@ -977,6 +996,10 @@ async function consultGate(mode, wireEvent, event, state, capability, extra) {
     credential
   );
 
+  // Sem resposta nenhuma: queda de rede ou servidor vivo recusando com status.
+  // Resposta de outra versão (abaixo) NÃO entra aqui.
+  if (!alive || answer === null) gateUnanswered = true;
+
   if (!alive) {
     const falhas = (Number(state.networkFailures) || 0) + 1;
     saveState(event.session_id, {
@@ -1203,6 +1226,20 @@ async function main() {
 
   if (mode === "stop") {
     await finishStop(event, turn, resultado, harness, ultimaMensagem);
+    return 0;
+  }
+
+  // ARROW-528 — a ferramenta vai passar sem a conferência: diz uma vez por sessão.
+  // `state.quiet` cobre a sessão em que as três quedas aconteceram antes de uma
+  // ferramenta (na abertura e depois dela), e `gateUnanswered`, a queda desta chamada.
+  // Sem id de sessão não há onde marcar o "uma vez", e repetir a cada ferramenta seria ruído.
+  if (mode === "pre" && event.session_id && !resultado && (state.quiet || gateUnanswered) && !state.gateNoticed) {
+    saveState(event.session_id, { ...loadState(event.session_id), gateNoticed: true });
+    if (harness === "cursor") {
+      print({ permission: "allow", user_message: GATE_UNANSWERED_NOTICE, agent_message: GATE_UNANSWERED_NOTICE });
+    } else {
+      print({ systemMessage: GATE_UNANSWERED_NOTICE });
+    }
     return 0;
   }
 
