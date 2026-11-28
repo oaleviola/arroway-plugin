@@ -26,7 +26,7 @@ If the summary says `Run /reload-plugins to activate.`, run it. Then the person 
 
 ### Claude app and Cowork
 
-The person does this, not you: Customize → Plugins → search for Arroway → Add (https://claude.ai/customize/plugins), then a new conversation. If it does not show up, add the marketplace `oaleviola/arroway-plugin` on that same screen.
+The person does this, not you: Customize → Plugins (https://claude.ai/customize/plugins) → + → Add marketplace → `https://github.com/oaleviola/arroway-plugin` → install Arroway, then a new conversation. Use the marketplace rather than searching for Arroway on that screen: the marketplace always carries the published version.
 
 ### Cursor
 
@@ -102,7 +102,7 @@ Si el resumen dice `Run /reload-plugins to activate.`, ejecútalo. Luego la pers
 
 #### App de Claude y Cowork
 
-Esto lo hace la persona, no tú: Personalizar → Plugins → busca Arroway → Añadir (https://claude.ai/customize/plugins), y después una conversación nueva. Si no aparece, añade el marketplace `oaleviola/arroway-plugin` en esa misma pantalla.
+Esto lo hace la persona, no tú: Personalizar → Plugins (https://claude.ai/customize/plugins) → + → Añadir marketplace → `https://github.com/oaleviola/arroway-plugin` → instalar Arroway, y después una conversación nueva. Usa el marketplace en vez de buscar Arroway en esa pantalla: el marketplace siempre trae la versión publicada.
 
 #### Cursor
 
@@ -178,7 +178,7 @@ Se o resumo disser `Run /reload-plugins to activate.`, rode. Depois a pessoa ent
 
 #### App do Claude e Cowork
 
-Quem faz é a pessoa, não você: Personalização → Plugins → procure Arroway → Adicionar (https://claude.ai/customize/plugins), e depois uma conversa nova. Se não aparecer, adicione o marketplace `oaleviola/arroway-plugin` nessa mesma tela.
+Quem faz é a pessoa, não você: Personalização → Plugins (https://claude.ai/customize/plugins) → + → Adicionar marketplace → `https://github.com/oaleviola/arroway-plugin` → instalar a Arroway, e depois uma conversa nova. Use o marketplace em vez de procurar Arroway nessa tela: o marketplace sempre traz a versão publicada.
 
 #### Cursor
 
